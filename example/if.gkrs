@@ -1,0 +1,14 @@
+;v3の新機能
+
+@var test
+@<input> name="test" text="true" type="checkbox"
+@<button> text="決定" class="black" style="width:100%;"
+@eval [[FORM]].style="display:block;width:10em;margin-top:1em;";
+@stop
+
+[if this.#test]
+	変数testは真です。
+[else]
+	変数testは偽です。
+[end]
+@stop

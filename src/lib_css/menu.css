@@ -1,0 +1,67 @@
+/* メニュー */
+
+/* ボタン */
+#menu_button{
+	z-index:999;
+	position:fixed;
+	bottom:0;
+	right:0;
+	width:2em;
+	height:2em;
+	background:#000;
+}
+
+#menu_button:after{
+	content:"≡";
+	font:2em/1 serif;
+	color:#fff;
+}
+
+/* メニュー画面 通常画面に上乗せでクリック防止するが、js側でもthis.#unbindで制御する */
+#gaku-ura_menu{
+	display:block;
+	position:absolute;
+	top:0;
+	left:0;
+	z-index:999;
+	width:100vw;
+	height:100vh;
+	background:rgba(255,255,255,.9);
+	color:#000;
+	box-sizing:border-box;
+	padding:.5em;
+	overflow-y:scroll;
+	animation:fade .3s linear 1;
+}
+#gaku-ura_menu *{
+	box-sizing:border-box;
+}
+#gaku-ura_menu div{
+	color:#ffe;
+	margin-bottom:5em;
+	text-align:center;
+	background:#6ce;
+	font:1.2em/2 sans-serif;
+}
+#gaku-ura_menu div:hover{
+	background:#bef;
+}
+
+#gaku-ura_menu dl{
+	display:flex;
+	background:#cff;
+	margin:.5em;
+	height:10em;
+	color:#111;
+}
+#gaku-ura_menu dt, #gaku-ura_menu dd{
+	flex-grow:1;
+}
+#gaku-ura_menu dt{
+	text-align:center;
+	width:30%;
+}
+#gaku-ura_menu dd{
+	width:70%;
+}
+

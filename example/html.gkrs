@@ -1,0 +1,3 @@
+;ただのwebページ
+@html <div style="padding:1em;"><h1>タイトル</h1><p>これだけだったら、普通にhtmlを書いた方が良い。</p></div>
+@stop

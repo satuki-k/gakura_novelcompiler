@@ -1,0 +1,146 @@
+/* 毎回コンパイルが必要です */
+
+/* 優先度の注意: 直接styleを設定する要素に対して、classListで管理するとき注意 */
+
+*{
+	margin:0 auto;
+	word-break:break-all;
+}
+a, a:hover{
+	text-decoration:none;
+}
+
+/* 下地 */
+#gaku-ura_display_w{
+	width:100%;
+	height:100%;
+}
+#gaku-ura_base, .gaku-ura_display{
+	user-select:none;
+	width:100%;
+	font:2vw/1.5 serif; /* 画面によって文字サイズ変更 */
+	color:#fff;
+	background:#000;
+	position:relative;
+	overflow:hidden;
+}
+#gaku-ura_base{
+	z-index:11;
+	height:100vh;
+}
+.gaku-ura_display{
+	z-index:55;
+	height:100%;
+	background-repeat:no-repeat;
+	/* 画像を全部表示したい場合はcontainにするが、キャラの背景ならcoverの方が見栄えが良い。背景色との併用も検討すべき */
+	background-size:cover;
+	background-position:center;
+}
+/* セリフ枠 一番外側 */
+.gaku-ura_speak{
+	z-index:99;
+	width:94%;
+	height:12em;
+	border:double 1px #ca0;
+	background:rgba(0,0,0,.5);
+	position:absolute;
+	bottom:1em;
+	left:3%;
+	padding:.2em;
+}
+/* 本文枠 */
+.gaku-ura_speak_base{
+	padding:.5em;
+	text-shadow:1px 1px #d1a;
+	font-size:1.2em;
+}
+
+/* 次へのボタン */
+.next_btn{
+	animation:fade .5s linear infinite;
+}
+.next_btn:after{
+	content:">>";
+	color:#fff;
+}
+
+/* セリフ隠すボタン */
+.msg_hide_btn{
+	position:absolute;
+	right:0;
+	top:0;
+	width:1em;
+	height:1em;
+	padding:0;
+	margin:0;
+}
+.msg_hide_btn:after{
+	content:"X";
+	font-family:sans-serif;
+	color:#fff;
+}
+
+/* clear回避用要素 */
+#gaku-ura_hide{
+	display:none;
+}
+
+
+h1{
+	font-size:xx-large;
+}
+.gaku-ura_speak h2{
+	height:1.5em;
+	border-bottom:solid 1px #fff;
+}
+
+/* 最大文字サイズ */
+@media only screen and (min-width:1000px){
+	#gaku-ura_base, .gaku-ura_display{
+		font-size:20px;
+	}
+}
+@media only screen and (max-width:600px){
+	#gaku-ura_base, .gaku-ura_display{
+		font-size:12px;
+	}
+}
+
+/* スマホ横表示はスクロールしてもらうしかない。要素が重なったりはみ出る。ブレークポイントは各自で決める */
+@media only screen and (max-height:600px){
+	#gaku-ura_display{
+		overflow-y:scroll;
+	}
+}
+
+
+/* キャラ */
+.chara{
+	pointer-events:none;
+	width:auto;
+	height:100%;
+	max-height:100%;
+	position:absolute;
+	bottom:0;
+	transition:1s;
+}
+
+@keyframes fade{
+	0%{
+		opacity:0;
+	}
+	100%{
+		opacity:1;
+	}
+}
+@keyframes bgfade{
+	0%{
+		background-color:rgba(0,0,0,0);
+	}
+	100%{
+		background-color:rbga(0,0,0,1);
+	}
+}
+
+/* 全部入れれる */
+#!include .;

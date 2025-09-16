@@ -1,0 +1,10 @@
+;gotoの使用例
+
+[ask]
+あなたはわたしのことが好きですか？
+@<button> text="はい" class="black" style="width:10em;margin-top:5em;"
+@<button> goto="ask" text="いいえ" class="black" style="width:10em;margin-top:5em;"
+@stop
+
+goto文を脱出しました。おめでとうございます。おしまい。
+@stop

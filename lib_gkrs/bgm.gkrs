@@ -1,0 +1,33 @@
+;//---------------------------------------------------------------------
+;//bgm再生関数の定義
+;//注意: 1回以上クリックした後にご使用下さい。音声の自動再生は無許可エラーになります。
+;//---------------------------------------------------------------------
+
+
+;//ロード対策
+@regist if($ID("bgm")){let pp=$ID("bgm").play();if(pp!==undefined){pp.then(_=>{}).catch(error=>{});}}
+
+;//bgmの再生 (引数: ファイルパス, ループ再生)
+@function play_bgm(f,loop=true){
+	if (!$ID("bgm")){
+		const b = document.createElement("audio");
+		b.id = "bgm";
+		b.style.display = "none";
+		this.#hideArea.append(b);
+	}
+	$ID("bgm").src = f;
+	$ID("bgm").loop = loop;
+	$ID("bgm").play();
+}
+
+;//bgmの停止
+@function stop_bgm(){
+	if ($ID("bgm")){
+		$ID("bgm").pause();
+		$ID("bgm").remove();
+	}
+}
+
+;//使用例
+;//@play_bgm "example.mp3"
+;//@stop_bgm()

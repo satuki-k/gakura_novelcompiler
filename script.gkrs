@@ -1,0 +1,273 @@
+;-----------------------------------------------------------------------
+;学裏ノベルコンパイラv4 サンプルソースコード
+;gakuracompilerかgakuracompiler_guiを実行
+;-----------------------------------------------------------------------
+
+;外部ファイルの呼び出し
+@include lib_gkrs/bgm.gkrs
+
+;タイトル
+@define TITLE サンプルコード
+;話速(文字間隔 ms)
+@define SPEED 80
+
+;キャラ
+//ディレクトリ名(第二引数)と、表示名(第三引数)が、第一引数と同じであれば省略可能
+@chara gaku gaku 學
+@chara ura
+
+;変数 (varで宣言した変数はグローバルで使用可能で、セーブデータに含みます)
+@var free_input
+@var input_name
+@var check_input
+
+;-----------------------------------------------------------------------
+;タイトル
+;-----------------------------------------------------------------------
+[title]
+
+;画面領域のDOM削除。属性は保持
+@clear
+
+;メニューボタン非表示
+@menu_button false
+
+;セリフ枠の非表示 (セリフを話そうとすれば非表示は解除される)
+@serif_hide
+
+;背景の直接設定したスタイルを削除
+@background_clear
+;インライン要素が無くなるのでクラスが適応可能に
+@eval this.#viewArea.classList.add("bg_check");
+
+;html挿入
+@html <div style="padding:1em;"><h1>学裏ノベルコンパイラ</h1><p>軽量なフロントエンドツール。条件付きプレゼンテーションツール。ノベルゲーム制作にも可能。</p></div>
+
+;ボタンリンク (gotoを省略するとgotoの行き先を直下と判断)
+@<button> text="はじめから" class="black" style="width:15em;font-size:1.5em;"
+@<button> goto="chara_show" text="キャラの表示について" class="black" style="width:15em;margin-top:1em;font-size:1.5em;"
+;gotoの代わりにmenuを使うとメニュー欄のショートカットが出来る
+@<button> menu="load" text="続きから" class="black" style="width:15em;margin-top:1em;font-size:1.5em;"
+
+;ボタンの下に配置
+@html <div style="width:25em;background:rgba(200,200,0,.5);padding:.2em;"><p style="text-align:center;">こんな人におすすめ</p><p>☆簡単にノベルゲームが作りたい方<br>☆文章を書くことが好きな方<br>☆自由なツールを探している方</p></div>
+
+;一時停止しないと次の会話へ行ってしまう
+@stop
+
+;-----------------------------------------------------------------------
+;スタート
+;-----------------------------------------------------------------------
+;[game_start]
+;ボタンやフォームは自動で削除されるが@htmlなどのDOMは手動でclearが必要
+@clear
+
+;メニューボタン表示
+@menu_button true
+
+;キャラを表示
+@chara_show gaku a.png 1
+
+<b>学裏ノベルコンパイラ</b>は、軽量で簡単なスライドです。プレゼンテーションやノベルゲームに使えます。
+このように文章を書くと、台詞のように表示されます。
+
+#gaku
+;行末が「\」なら、そのセリフを残したまま次のセリフを喋る
+台詞欄の上に話者名と表示できます。\
+このような分割表示も可能です。簡単でしょ？
+
+#
+確かに簡単だね。\
+ただ文字を書くだけだからね。でも、他の表現が大変じゃないの？
+
+#gaku
+ところがどっこい、<b style="color:red;">コンパイル</b>が味噌なのです！ シナリオはjavascriptにコンパイルされます。
+コンパイラが使用者を面倒な処理や記述から開放します。
+
+;画像の変更(表情など)も同じ命令
+@chara_show gaku b.png 1
+
+;背景画像
+@background_image tasogare.jpg 1
+例えば、背景画像を変更したり、\
+;削除
+@background_clear
+戻したり、\
+;クラスの除去
+@eval this.#viewArea.classList.remove("bg_check");
+@background_image none
+@background_color #000 1
+単色にしたりするのも簡単です。
+;もとに戻す
+@background_clear
+@eval this.#viewArea.classList.add("bg_check");
+@chara_show gaku a.png 1
+
+#
+これくらいなら直接javascriptでも書けるよ。っていうか、一部javascript埋め込みだし。
+
+#gaku
+なんでも組み込み関数でラップするのではなく、javascript埋め込みを可能にして柔軟に対応できるようにしているのです。
+他にも、フォーム機能があります。何か入力してみてください。
+
+;キャラ退場
+@chara_hide gaku
+
+;戻るためのラベル
+[game_start/input]
+
+;@htmlや@evalで追加したコンテンツがループ内で無限追加されないようにする
+@clear
+
+;見出しタグ
+@html <h1>入力フォーム</h1>
+
+;入力の受取 @<input> 引数nameは必須。スタイルはどうにかこうにかして整えましょう。nameには@varで定義した変数を入れる
+@<input> name="free_input" type="text" text="何かを入力してください" style="width:10em;margin-bottom:.5em;" max="15"
+@<input> name="input_name" type="text" text="あなたの名前は何ですか" style="width:10em;margin-bottom:.5em;" max="15"
+@<input> name="check_input" type="checkbox" text="おまかせする"
+
+;@<input>と@stopの間にボタンは一回まで可能。これが送信ボタンになる。(その他のボタンは、@<input>の前に書く)
+;ボタンの行先が単に次へ進むだけならgotoは省略可能(ラベル付け不要)
+@<button> text="決定" class="white" style="width:100%;"
+
+;フォームのエレメントは変数名が変動するのでマクロを使う
+@eval [[FORM]].style='displaly:block;width:22em;background:#000;color:#fff;marin-top:2em;';
+@stop
+
+;ifラベルを使った分岐 ifとelseifは評価式を引数とする
+[if this.#check_input]
+	@eval this.#free_input='くぁｗせｄｒｆｔｇｙふじこｌｐ';
+	@eval this.#input_name='名無しの権兵衛';
+	おまかせ入力します。
+[else]
+	おまかせ入力しません。
+[end]
+[if !not_empty(this.#free_input)||!not_empty(this.#input_name)]
+	[if !not_empty(this.#free_input)]
+		一つ目の項目が入力されていません。
+	[end]
+	[if !not_empty(this.#input_name)]
+		二つ目の項目が入力されていません。
+	[end]
+	二つとも入力してボタンを押して下さい。
+	@goto game_start/input
+[end]
+
+;再表示
+@chara_show gaku a.png 1
+;変数展開は<$name>でする。実態は「this.#name」プロパティー
+<$input_name>さんは、<$free_input>と入力しました。\
+このように、入力の受取が出来ます。ボタン以外の条件分岐もできます。
+
+#<$input_name> さん
+実は、名前欄にも変数展開が出来ます。
+
+;@htmlで追加した要素をクリア
+@clear
+;クリアするとキャラも消える
+@chara_show gaku a.png
+
+#
+分岐もできるんだね。
+
+#gaku
+うん、javascript埋め込みだけでも分岐が可能だったけれど、かなり煩雑だから特殊ラベルとしてif文を作りました。
+ifやelseifの条件を満たさない場合は、次のelseやelseifまたはendに飛ぶような仕組みです。
+
+#
+「else if」でも「elif」でも「elsif」でもなく、「elseif」なのに注意しましょう。
+
+#gaku
+これだけあれば何か作れるでしょう。あとは表現力とかアイデアとかで頑張りましょう。
+
+#
+とりあえず文章を書けばいいんだよね。簡単だね。
+
+タイトルに戻ります。
+
+;最後に片づける
+@chara_hide gaku
+
+@goto title
+
+;-----------------------------------------------------------------------
+;キャラの説明
+;-----------------------------------------------------------------------
+[chara_show]
+
+;関数(メソッド)の定義。使う前に定義すること 内部で@命令が使用可能だがページを切ることは出来ない
+@function chara_gaku(){
+	@chara_show gaku a.png 0.3 false
+	@chara_hide ura 0.5
+}
+@function chara_ura(){
+	@chara_show ura a.png 0.3
+	@chara_hide gaku 0.5
+}
+
+@clear
+@menu_button true
+
+;キャラの表示 (最終引数は任意。アニメーション時間s 直後にgotoなどがある場合は無効)
+@chara_show gaku a.png 1
+
+
+;キャラ宣言の第一引数(名前)を表示名にすると、最終引数(表示名)に置き換わります。
+#gaku
+当然、キャラの表示も可能です。ついでにBGMの紹介もします。これからbgmを再生します。
+
+@chara_hide gaku
+@<button> goto="play_bgm_no" text="いいえ結構です" class="blue" style="width:10em;margin-top:1em;"
+@<button> text="了承します" class="blue" style="width:10em;margin-top:1em;"
+@stop
+
+;@functionで定義した関数は@で呼び出せるが、文字列にはクォーテーションが必要です。
+@play_bgm "static/bgm/test.wav"
+@chara_show gaku a.png 1
+bgmは、lib_gkrs/bgm.gkrsを@includeで読み込むことで利用可能です。@includeは、ライブラリの読み込みだけではなく、シナリオファイルの分割にも使えます。
+ファイルを<ruby><rb>そのまま繋げたように</rb><rt>・・・・・・・・・・</rt></ruby>振る舞います。ただし、スコープ化されます。
+ラベルはそのファイルの内外に@goto出来ませんので、ラベルの名前競合が防止できます。大量に分岐がある場合に「〇〇ルート」のようなファイル呼び出しに有効です。
+そろそろBGMを停止します。
+@stop_bgm
+@goto play_bgm_no
+[play_bgm_no]
+
+
+;表情変更も同じ命令
+@chara_show gaku a.png 1
+@chara_show ura a.png 1
+#ura
+複数のキャラを表示可能です。自動で位置を補正してくれます。自分で位置を決める場合は、DOM操作を直接行います。
+
+@chara_hide ura 1
+#gaku
+ただし、スマートフォンなどの画面が狭い場合は、そもそも表示領域が足りないので重なります。話者以外のキャラは非表示した方がいいかもしれません。
+
+
+@chara_ura
+#ura
+しかし毎回そんなことすると煩雑になります。そこで、関数を使いましょう。@function定義し、@で呼び出せます。なお、関数名は定義済みの名前を指定するとコンパイル出来ません。
+
+@chara_gaku
+#gaku
+このように、交互にキャラを表示したりするような、頻繁な@chara_showと@chara_hideを使用する場合は、そのような関数を定義すると一行で切り替えが書けます。
+
+@chara_ura
+#ura
+javascriptと密接なので、関数も全部@evalで呼ぶことも可能です。ただし、@evalではコンパイル時の検査対象外なので注意しましょう。存在しないファイル指定や未宣言キャラを記述してもコンパイルが通ってしまいます。
+
+@chara_gaku
+#gaku
+直接javascriptを埋め込むのは便利ですが、気をつけましょう。
+
+@chara_ura
+#ura
+javascriptがわかる人には言うまでもないですが。\
+ではこの辺で。
+
+@chara_hide ura 1
+
+#
+タイトルに戻ります。
+@goto title

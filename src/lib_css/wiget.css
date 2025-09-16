@@ -1,0 +1,89 @@
+/* ボタンなど */
+
+/* キャラより上に表示する場合はposition:absolute; */
+
+.center{
+	position:absolute;
+	left:50%;
+	transform:translateX(-50%);
+}
+
+button{
+	font-size:1em;
+	padding:.2em;
+}
+
+/* 選択肢用ボタン */
+button:not(#form button){
+	display:block;
+	padding:.2em;
+	margin-top:.2em;
+	margin-bottom:.2em;
+	font-size:1em;
+}
+
+/* 青いボタン */
+button[class="blue"]{
+	background:#00c;
+	color:#fff;
+	border-radius:.3em;
+	border:solid 1px #aaa;
+}
+button[class="blue"]:hover{
+	background:#00e;
+	color:#fee;
+}
+
+/* 緑のボタン */
+button[class="green"]{
+	background:#0c0;
+	color:#fff;
+	border-radius:.3em;
+	border:solid 1px #aaa;
+}
+button[class="green"]:hover{
+	background:#0f0;
+}
+
+/* 黒いボタン */
+button[class="black"]{
+	background:#000;
+	color:#fff;
+	border-radius:.3em;
+	border:solid 1px #eee;
+}
+button[class="black"]:hover{
+	background:#555;
+}
+
+/* 白いボタン */
+button[clas="white"]{
+	background:#fff;
+	color:#000;
+	border-radius:.3em;
+	border:solid 1px #eee;
+}
+button[class="white"]:hover{
+	background:#eee;
+}
+
+
+/* フォーム */
+#form{
+	display:block;
+	padding:1em;
+	width:100%;
+	position:absolute;
+	left:50%;
+	transform:translateX(-50%);
+}
+#form label{
+	display:block;
+}
+#form input[type="text"]{
+	display:inline;
+	font-size:1em;
+	outline:none;
+	width:12em;
+}
+

@@ -149,12 +149,14 @@ replace = {}
 p_method = {}
 section = ""
 page_list = []
+uqid = 0
 def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_gkrs}):
 	global config
 	global replace
 	global p_method
 	global section
 	global page_list
+	global uqid
 	#初期化
 	if nest["first"]:
 		if not os.path.isfile(nest["file"]):
@@ -189,6 +191,7 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 			"save_show":0,"load_show":0,"clear_show":0}
 		page_list = []
 		section = ""
+		uqid = 0
 		for f in ["index.html","src/main.js","src/main.css"]:
 			if not os.path.isfile(d_root+"/"+f):
 				return e_fmt(e_init,"必須ファイルが無い/"+d_root+"/"+f+" is not exists.")
@@ -199,8 +202,8 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 	p_label = {}
 	memo = {
 	"name":"''","function":"","if_stack":[],"bottom_shift":"",
-	"button_open":False, "button":0,"form":False,"form_input":[],
-	"form_shift":"","dom_wait":""}
+	"button_open":False,"form":False,"form_input":[],
+	"form_shift":"","form_submit":"","dom_wait":""}
 	fname = nest["file"]
 	with open(fname, "r") as fp:
 		rows = fp.readlines()
@@ -365,10 +368,7 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 					if menu not in ["save","load","to_title"]:
 						return e_fmt(e_fatl,"不正な引数です/an argument 'menu' must input 'save', 'load' or 'to_title'",row_id,fname)
 					gid = str(replace["PAGE_MAX"])
-				lbn = "goto_"+gid
-				#id重複防止
-				lbn += str(memo["button"])
-				memo["button"] += 1
+				lbn = "goto_"+str(uqid)
 				#buttonを作成
 				asect += "const "+lbn+"=document.createElement('button');"+lbn+".id='"+lbn+"';"
 				if t != "":
@@ -382,9 +382,10 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 						asect += lbn+".classList.add('"+c+"');"
 				if s != "":
 					asect += lbn+'.style="'+s+'";'
-				if memo["form"]:
-					asect += lbn+".type='submit';"+config["FORM"]+".append("+lbn+");"
+				if memo["form"] and memo["form_submit"] == "":
+					asect += lbn+".id='"+lbn+"';"+config["FORM"]+".append("+lbn+");"
 					memo["form_shift"] += "this.move_page("+gid+");"
+					memo["form_submit"] = lbn
 				else:
 					if memo["button_open"] == False:
 						asect += "if($ID('gkbn'))$ID('gkbn').remove();this.#viewArea.innerHTML+='<div id=\"gkbn\"></div>';"
@@ -394,6 +395,7 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 						memo["dom_wait"] += "$ID('"+lbn+"').addEventListener('click',(e)=>{e.stopPropagation();if(this.#unbind)return;if($ID('gkbn'))$ID('gkbn').remove();this.move_page("+gid+")});"
 					else:
 						memo["dom_wait"] += "$ID('"+lbn+"').addEventListener('click',(e)=>{e.stopPropagation();if(this.#unbind)return;this.menu_show();$ID('"+menu+"').click()});"
+				uqid += 1
 			#入力 (フォーム形式 ボタンとセット ボタンが無いと脱出出来ない)
 			elif f2l[0] == "<input>":
 				c = subrpos('class="', '"', f2)
@@ -411,20 +413,15 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 				n = subrpos('name="', '"', f2)
 				if n == "" or replace["VAR"].find("#"+n+";") == -1:
 					return e_fmt(e_fatl,"変数が存在しないか未指定です/an argument 'name' is not set or it is not defined",row_id,fname)
-				nen = "input_"+n
-				lnen = "input_l_"+n
+				nen = "input_"+str(uqid)
+				lnen = "l_"+nen
 				if memo["form"] == False:
-					if "form_use" in memo:
-						memo["form_use"] += 1
-					else:
-						memo["form_use"] = replace["PAGE_MAX"]
-				frn = "f"+str(memo["form_use"])
-				config["FORM"] = frn
-				#後でフォームを作るために記憶
-				if memo["form"] == False:
+					frn = "form_"+str(uqid)
+					config["FORM"] = frn
+					#後でフォームを作るために記憶
 					memo["form"] = True
 					#イベント伝播防止
-					asect += "if($ID('form'))$ID('form').remove();const "+frn+"=document.createElement('form');"+frn+".method='post';"+frn+".id='form';"+frn+".addEventListener('click',(e)=>{e.stopPropagation()});"+frn+".addEventListener('keydown',(e)=>{e.stopPropagation()});"
+					asect += "if($ID('form'))$ID('form').remove();const "+frn+"=document.createElement('div');"+frn+".id='form';"+frn+".addEventListener('click',(e)=>{e.stopPropagation()});"+frn+".addEventListener('keydown',(e)=>{e.stopPropagation()});"
 				asect += "const "+lnen+"=document.createElement('label');const "+nen+"=document.createElement('input');"+nen+".id='"+nen+"';"
 				if mmin != "":
 					if y == "text":
@@ -436,7 +433,7 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 						asect += nen+'.maxLength='+mmax+';'
 					elif y == "range" or "munber":
 						asect += nen+'.max='+mmax+';'
-				asect += "this.#"+n+"='';"+nen+".name='"+nen+"';"+nen+".type='"+y+"';"+lnen+".innerHTML='"+t+"';"+nen+".addEventListener('keydown',(e)=>{if(e.key==='Return'||e.key==='Enter')e.preventDefault()});"
+				asect += "this.#"+n+"='';"+nen+".name='"+nen+"';"+nen+".type='"+y+"';"+lnen+".innerHTML='"+t+"';"
 				if y == "radio" or y == "checkbox":
 					asect += lnen+".prepend("+nen+");"
 				else:
@@ -457,6 +454,7 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 					asect += lnen+".onclick=()=>{this.#"+n+"="+nen+".checked;};"
 				else:
 					memo["form_input"].append({"name":n,"id":nen})
+				uqid += 1
 			#クリア
 			elif f2l[0] == "clear":
 				asect += "this.clear();"
@@ -539,14 +537,17 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 			#次へ進むとき次の会話ではない(選択肢とか) close_sectionを伴う 会話に突入したら自動で復帰
 			elif f2l[0] == "stop":
 				if memo["form"]:
+					if memo["form_submit"] == "":
+						return e_fmt(e_fatl,"送信ボタンが無い/did you forget '@<button>'?",row_id,fname)
 					#dom_waitの内容
-					asect += "this.#viewArea.append("+config["FORM"]+");"+memo["bottom_shift"]+"$ID('form').addEventListener('submit',(e)=>{e.preventDefault();if(this.#unbind)return;"
+					asect += "this.#viewArea.append("+config["FORM"]+");"+memo["bottom_shift"]+"$ID('"+memo["form_submit"]+"').addEventListener('click',(e)=>{if(this.#unbind)return;"
 					for j in memo["form_input"]:
 						asect += "this.#"+j['name']+"="+j['id']+".value;"
 					asect += "$ID('form').remove();"+memo['form_shift']+"});"
 					memo["form_input"] = []
 					memo["form_shift"] = ""
-					config["FORM"] = "" #未定義と勘違い防止
+					memo["form_submit"] = ""
+					config["FORM"] = ""
 					if memo["button_open"]:
 						asect += memo["dom_wait"]
 				elif memo["button_open"]:
@@ -559,18 +560,14 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 				close_fl = True
 			#html挿入(evalでも可能だが冗長になるからラップする)
 			elif f2l[0] == "html":
-				hc = ""
-				if "html_count" in memo.keys():
-					memo["html_count"] += 1
-				else:
-					memo["html_count"] = replace["PAGE_MAX"]
-				hc += "t"+str(memo["html_count"])
+				hc = "t"+str(uqid)
 				if len(f2l) > 1:
 					jc = "const "+hc+"='"+" ".join(f2l[1:]).replace("'",'"')+"';if(isload){this.#viewArea.innerHTML=this.#viewArea.innerHTML.replace("+hc+",'');}this.#viewArea.innerHTML+="+hc+";"
 					if memo["form"] or memo["button_open"]:
 						memo["bottom_shift"] += jc
 					else:
 						asect += jc
+				uqid += 1
 			#設定変更
 			elif f2l[0] == "define":
 				k = f2l[1].upper()

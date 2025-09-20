@@ -1,7 +1,7 @@
 /* メニュー */
 
 /* ボタン */
-#menu_button{
+#gaku-ura_menu_button{
 	z-index:999;
 	position:fixed;
 	bottom:0;
@@ -11,7 +11,7 @@
 	background:#000;
 }
 
-#menu_button:after{
+#gaku-ura_menu_button:after{
 	content:"≡";
 	font:2em/1 serif;
 	color:#fff;

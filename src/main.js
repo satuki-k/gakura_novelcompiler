@@ -5,7 +5,7 @@
 #!include array.js;
 
 /* 進行クラス */
-const save_id = location.href.replace(location.protocol,"")+"_gaku-ura4.2.1_save_";
+const save_id = location.href.replace(location.protocol,"")+"_gaku-ura4.3.1_save_";
 class Gs{
 	#page; //進行管理id
 	#wait; //表示の未完了

@@ -1,5 +1,5 @@
-# gaku-ura novel compiler 4.2
-2025-9-19
+# gaku-ura novel compiler 4.3
+2025-9-21
 http://bq.f5.si/
 
 ## 必要なもの/runtime

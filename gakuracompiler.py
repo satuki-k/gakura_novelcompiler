@@ -2,7 +2,7 @@
 # コンパイラ本体
 # (c)gaku-ura 2025
 # http://bq.f5.si/
-#gaku-ura9.5.0抜粋・翻訳
+#gaku-ura9.5抜粋・翻訳
 import sys
 import os
 import re
@@ -30,7 +30,7 @@ def css_out(css_file):
 	css_list = []
 	if os.path.isdir(css_file):
 		for f in os.listdir(css_file):
-			if ".css" in f:
+			if f.endswith(".css"):
 				css_list.append(css_file+"/"+f)
 	elif os.path.isfile(css_file):
 		css_list = [css_file]
@@ -47,7 +47,7 @@ def js_out(js_file, minify=True):
 	js_list = []
 	if os.path.isdir(js_file):
 		for f in os.listdir(js_file):
-			if ".js" in f:
+			if f.endswith(".js"):
 				js_list.append(js_file+"/"+f)
 	elif os.path.isfile(js_file):
 		js_list = [js_file]
@@ -61,9 +61,8 @@ def js_out(js_file, minify=True):
 			j = remove_comment_rows(j)
 			t = ""
 			for row in j.splitlines():
-				i = row.strip()
-				t += row_js(re.sub(r"\/\/.*","",i)).strip()
-			r += t
+				t += re.sub(r"\/\/.*", "", row.strip())
+			r += row_js(t)
 		else:
 			r += j
 	return r
@@ -128,6 +127,14 @@ def split_with_html(text):
 			r.append(l[i])
 		i += 1
 	return r
+def ruby(t):
+	p = t.find("|")
+	while (c:=subrpos("|","》",t[p:])) != "":
+		l = c.split("《")
+		if len(l) == 2:
+			t = t.replace("|"+c+"》", "<ruby><rb>"+l[0]+"</rb><rt>"+l[1]+"</rt></ruby>")
+		p = t.find("|")
+	return t
 m_u8lf = {"encoding":"utf-8","newline":"\n"}
 d_root = os.path.abspath(os.path.dirname(sys.argv[0]))
 entry_point_gkrs = d_root+"/script.gkrs"
@@ -304,7 +311,7 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 		elif f1 == "@" and len(row) > 1:
 			#手動マクロ
 			while (p:=subrpos("SERIF(", ")", row)) != "":
-				row = row.replace("SERIF("+p+")", "'"+"','".join(split_with_html(p))+"'")
+				row = row.replace("SERIF("+p+")", "'"+"','".join(split_with_html(ruby(p)))+"'")
 			if subrpos("[[GOTO ", "]]", row) != "":
 				g = subrpos("[[GOTO ", "]]", row)
 				if g not in p_label:
@@ -606,7 +613,7 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 			asect += row
 		#名前表示
 		elif f1 == "#":
-			f2 = "'"+f2+"'"
+			f2 = "'"+ruby(f2)+"'"
 			while (p:=subrpos("<$", ">", f2)) != "":
 				if replace["VAR"].find("#"+p+";") == -1:
 					return e_fmt(e_warn,"未定義の変数です/undefined variable "+p,row_id,fname)
@@ -623,7 +630,7 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 				nk = True
 			else:
 				nk = False
-			txt_list = "['"+"','".join(split_with_html(row))+"']"
+			txt_list = "['"+"','".join(split_with_html(ruby(row)))+"']"
 			isvar = False
 			while (p:=subrpos("'<$", ">'", txt_list)) != "":
 				if replace["VAR"].find("#"+p+";") == -1:

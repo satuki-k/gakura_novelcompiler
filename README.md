@@ -1,5 +1,5 @@
-# gaku-ura novel compiler 4.3
-2025-9-21
+# gaku-ura novel compiler 4.4
+2025-9-23
 
 web: http://bq.f5.si/?Page=novelcompiler
 

@@ -1,28 +1,41 @@
-# gaku-ura novel compiler 4.3
-2025-9-21
-http://bq.f5.si/
+# gaku-ura novel compiler 4.5
+2025-9-23
+
+web: http://bq.f5.si/?Page=novelcompiler
+
+bbs: http://bq.f5.si/bbs/board/?Board=7
+
 
 ## 必要なもの/runtime
 gakuracompiler_gui.exe(editor and compiler): nothing
+
 gakuracompiler.py(compiler only): **python3**
+
 gakuracompiler_gui.py(editor and compiler): **python3 and tkinter**
+
 
 ## 実行/execute
 gakuracompiler_gui.py(or exe): choose option in menu "Build"
+
 gakuracompiler.py:
+
 linux:
 ```
 python3 gakuracompiler.py
 ```
+
 windows:
 ```
 python gakuracompiler.py
 ```
+
 arguments: filepath(=script.gkrs) -y(debug mode) -n(publish mode) -WEB(open html file in web after compile)
+
 
 
 ## 文法の解説/how to coding
 http://bq.f5.si/?Page=novelcompiler
+
 **All of text files are must be "LF" and "UTF-8".**
 
 ## コーディング規約

@@ -31,13 +31,13 @@ function remove_comment_rows(code, s, e){
 	return code;
 }
 
-function not_empty(str){
-	s = str
-	.replace(" ", "")
-	.replace(/　/g, "")
-	.replace(/\s/g, "")
-	.replace(/\r|\n|\r\n/, "");
-	if (s === ""){
+function not_empty(s=""){
+	if (s === null || s === undefined) return false;
+	if (s
+		.replace(" ", "")
+		.replace(/　/g, "")
+		.replace(/\s/g, "")
+		.replace(/\r|\n|\r\n/, "") === ""){
 		return false;
 	} else {
 		return true;

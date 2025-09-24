@@ -1,11 +1,15 @@
 /* gaku-ura9.4 lib javascript抜粋 */
 
+//なるべくエラー検出したい
+<debug>"use strict";</debug>
+
 #!include element.js;
 #!include string.js;
 #!include array.js;
 
 /* 進行クラス */
-const save_id = location.href.replace(location.protocol,"")+"_gaku-ura4.3.1_save_";
+//セーブidは他の作品と競合を防止するためのものです。使用環境に合わせて変更してください
+const save_id = location.href.replace(location.protocol,"")+"_gaku-ura4.4.0_save_";
 class Gs{
 	#page; //進行管理id
 	#wait; //表示の未完了
@@ -31,7 +35,7 @@ class Gs{
 
 	//初期化 下地作成
 	constructor(){
-		if (!$ID("gaku-ura_base")||$ID("gaku-ura_display")||$ID("gaku-ura_speak")){
+		if (!$ID("gaku-ura_base")||$ID("gaku-ura_display_w")){
 			try{
 				$QS(":root").remove();
 			} catch {}
@@ -141,7 +145,6 @@ class Gs{
 
 	//背景の色または画像
 	bgcolor(c, s=0){
-		//this.#viewArea.style.transition = s==0?"":s+"s";
 		this.#viewArea.style.backgroundColor = c;
 		this.#viewArea.style.animation = s==0?"":"bgfade "+s+"s linear 1";
 		<debug>console.log("背景色: "+c);</debug>
@@ -349,16 +352,15 @@ class Gs{
 		}
 	}
 
-
 	//メニュー
 	menu_button(show=true){
 		if (show){
 			if (!$ID("gaku-ura_menu_button")){
-				const m = document.createElement("a");
-				m.href = "#";
-				m.id = "gaku-ura_menu_button";
-				$ID("gaku-ura_base").append(m);
-				m.addEventListener("click", (e)=>{
+				const b = document.createElement("a");
+				b.href = "#";
+				b.id = "gaku-ura_menu_button";
+				$ID("gaku-ura_base").append(b);
+				b.addEventListener("click", (e)=>{
 					e.preventDefault();
 					this.menu_show();
 				});
@@ -369,42 +371,52 @@ class Gs{
 			}
 		}
 	}
+	//innerHTMLで追加した要素を取得しないように
 	menu_page(show=true){
 		this.#unbind = show;
+		if ($ID("gaku-ura_menu")) $ID("gaku-ura_menu").remove();
 		if (show){
 			this.menu_button(false);
-			if (!$ID("gaku-ura_menu")){
-				const m = document.createElement("div");
-				m.id = "gaku-ura_menu";
-				$ID("gaku-ura_base").append(m);
-			}
-		} else {
-			if ($ID("gaku-ura_menu")) $ID("gaku-ura_menu").remove();
-			if (this.#menu_button_enable) this.menu_button();
+		} else if (this.#menu_button_enable){
+			this.menu_button();
 		}
 	}
 	/* メニューオプション画面 */
 	menu_show(){
 		this.menu_page();
-		$ID("gaku-ura_menu").innerHTML = '<h2>めにゅー</h2><a href="#" id="to_title"><div>タイトルへ</div></a><a href="#" id="save"><div>セーブ</div></a><a href="#" id="load"><div>ロード</div></a><a href="#" id="clear"><div>ローカルストレージ削除</div></a><a href="#" id="close_menu"><div>とじる</div></a>';
-		$ID("gaku-ura_menu").addEventListener("click", (e)=>{e.stopPropagation()});
-		$ID("to_title").addEventListener("click", (e)=>{
+		const m = document.createElement("div");
+		const l = ["to_title", "save", "load", "clear", "close_menu"];
+		const n = ["タイトルへ", "セーブ", "ロード", "ローカルストレージ削除", "とじる"];
+		const t = {};
+		m.innerHTML = "<h2>めにゅー</h2>";
+		m.id = "gaku-ura_menu";
+		for (let i = 0; i < l.length; ++i){
+			const a = document.createElement("a");
+			a.href = "#";
+			a.id = l[i];
+			a.innerHTML = "<div>"+n[i]+"</div>";
+			t[l[i]] = a;
+			m.append(a);
+		}
+		$ID("gaku-ura_base").append(m);
+		m.addEventListener("click", (e)=>{e.stopPropagation()});
+		t["to_title"].addEventListener("click", (e)=>{
 			e.preventDefault();
 			location.reload();
 		});
-		$ID("save").addEventListener("click", (e)=>{
+		t["save"].addEventListener("click", (e)=>{
 			e.preventDefault();
 			this.save_show();
 		});
-		$ID("load").addEventListener("click", (e)=>{
+		t["load"].addEventListener("click", (e)=>{
 			e.preventDefault();
 			this.load_show();
 		});
-		$ID("clear").addEventListener("click", (e)=>{
+		t["clear"].addEventListener("click", (e)=>{
 			e.preventDefault();
 			this.clear_show();
 		});
-		$ID("close_menu").addEventListener("click", (e)=>{
+		t["close_menu"].addEventListener("click", (e)=>{
 			e.preventDefault();
 			this.menu_page(false);
 		});
@@ -413,96 +425,148 @@ class Gs{
 	save(sid=0){
 		const n = new Date();
 		const jn = {"p":this.#page,"cl":this.#chara_list,"ci":this.#chara_index,"sp":this.#speakArea.style.display,"h":this.#viewArea.innerHTML,"hw":$ID("gaku-ura_display_w").innerHTML,"hh":this.#hideArea.innerHTML,"tl":this.#serifText,"mb":this.#menu_button_enable,
-			"d":n.getFullYear()+"年 "+(n.getMonth()+1)+"月"+n.getDate()+"日 "+n.getHours()+"時"+n.getMinutes()+"分", "t":this.#speakAreaSerif.innerHTML
+			"d":n.getFullYear()+"年 "+(n.getMonth()+1)+"月"+n.getDate()+"日 "+n.getHours()+"時"+n.getMinutes()+"分"+"  page "+this.#page, "t":this.#speakAreaSerif.innerHTML
 		[SAVE_REGIST]};
 		const o = JSON.stringify(jn);
-		localStorage.setItem(save_id+sid, o);
+		try {
+			localStorage.setItem(save_id+sid, o);
+		} catch {}
 	}
 	save_show(){
 		this.menu_page();
-		$ID("gaku-ura_menu").innerHTML = "<h2>セーブ</h2><p>保存する場所を選択してください。</p>";
+		const m = document.createElement("div");
+		const t = [];
+		m.innerHTML = "<h2>セーブ</h2><p>保存する場所を選択してください。</p>";
+		m.id = "gaku-ura_menu";
 		for (let i = 0; i < {SAVE_MAX}; ++i){
-			const j = localStorage.getItem(save_id+i);
 			let s = ["no data", "no data"];
-			if (j != null){
-				const jj = JSON.parse(j);
-				s = [jj.d, jj.t];
+			try {
+				const j = localStorage.getItem(save_id+i);
+				if (j){
+					const jj = JSON.parse(j);
+					s = [jj.d, jj.t];
+				}
+			} catch {
+				continue;
 			}
-			$ID("gaku-ura_menu").innerHTML += '<a href="#" id="save_data_'+i+'"><dl><dt>'+s[0]+'</dt><dd>'+s[1]+'</dd></dl></a>';
+			const a = document.createElement("a");
+			a.href = "#";
+			a.id = "save_data_"+i;
+			a.innerHTML = "<dl><dt>"+s[0]+"</dt><dd>"+s[1]+"</dd></dl>";
+			t.push(a);
+			m.append(a);
 		}
-		$ID("gaku-ura_menu").innerHTML += '<a href="#" id="close_menu"><div>とじる</div></a>';
-		$ID("gaku-ura_menu").addEventListener("click", (e)=>{e.stopPropagation()});
-		for (let k = 0; k < {SAVE_MAX}; ++k){
-			$ID("save_data_"+k).addEventListener("click", (e)=>{
+		const a = document.createElement("a");
+		a.href = "#";
+		a.id = "close_menu";
+		a.innerHTML = "<div>とじる</div>";
+		m.append(a);
+		$ID("gaku-ura_base").append(m);
+		m.addEventListener("click", (e)=>{e.stopPropagation()});
+		for (let i = 0; i < {SAVE_MAX}; ++i){
+			t[i].addEventListener("click", (e)=>{
 				e.preventDefault();
-				this.save(k);
+				this.save(i);
 				this.menu_page(false);
 			});
 		}
-		$ID("close_menu").addEventListener("click", (e)=>{
+		a.addEventListener("click", (e)=>{
 			e.preventDefault();
 			this.menu_page(false);
 		});
 	}
 	load_show(){
 		this.menu_page();
-		$ID("gaku-ura_menu").innerHTML = '<h2>ロード</h2><p>読み込むものを選んでください。</p>';
+		const m = document.createElement("div");
+		const t = [];
+		m.innerHTML = "<h2>ロード</h2><p>読み込むものを選んでください。</p>";
+		m.id = "gaku-ura_menu";
 		for (let i = 0; i < {SAVE_MAX}; ++i){
-			const j = localStorage.getItem(save_id+i);
-			if (j != null){
-				const jj =  JSON.parse(j);
-				$ID("gaku-ura_menu").innerHTML += '<a href="#" id="save_data_'+i+'"><dl><dt>'+jj.d+'</dt><dd>'+jj.t+'</dd></dl></a>';
+			try {
+				const j = localStorage.getItem(save_id+i);
+				if (j){
+					const jj =  JSON.parse(j);
+					const a = document.createElement("a");
+					a.href = "#";
+					a.id = "save_data_"+i;
+					a.innerHTML = "<dl><dt>"+jj.d+"</dt><dd>"+jj.t+"</dd></dl>";
+					t.push(a);
+					m.append(a);
+				} else {
+					t.push(null);
+				}
+			} catch {
+				t.push(null);
 			}
 		}
-		$ID("gaku-ura_menu").innerHTML += '<a href="#" id="close_menu"><div>とじる</div></a>';
-		$ID("gaku-ura_menu").addEventListener("click", (e)=>{e.stopPropagation()});
-		for (let k = 0; k < 4; ++k){
-			if (!$ID("save_data_"+k)) continue;
-			$ID("save_data_"+k).addEventListener("click", (e)=>{
+		const a = document.createElement("a");
+		a.href = "#";
+		a.id = "close_menu";
+		a.innerHTML = "<div>とじる</div>";
+		m.append(a);
+		$ID("gaku-ura_base").append(m);
+		m.addEventListener("click", (e)=>{e.stopPropagation()});
+		for (let i = 0; i < {SAVE_MAX}; ++i){
+			if (t[i] === null) continue;
+			t[i].addEventListener("click", (e)=>{
 				e.preventDefault();
-				this.clear();
-				const s = JSON.parse(localStorage.getItem(save_id+k));
-				if (list_isset(s, ["mb","sp","ci","cl","h","hw","hh","tl","t","p"])){
-					$ID("gaku-ura_display_w").innerHTML = s.hw;
-					this.#viewArea = $ID("gaku-ura_display");
-					this.#menu_button_enable = s.mb;
+				try {
+					const s = JSON.parse(localStorage.getItem(save_id+i));
+					if (list_isset(s, ["mb","sp","ci","cl","h","hw","hh","tl","t","p"])){
+						this.clear();
+						$ID("gaku-ura_display_w").innerHTML = s.hw;
+						this.#viewArea = $ID("gaku-ura_display");
+						this.#menu_button_enable = s.mb;
+						this.menu_page(false);
+						this.#speakArea.style.display = s.sp;
+						this.#chara_index = s.ci;
+						this.#chara_list = s.cl;
+						this.#viewArea.innerHTML = s.h;
+						this.#hideArea.innerHTML = s.hh;
+						this.#serifText = [];
+						this.#serifTextPoint = 0;
+						this.#speakAreaSerif.innerHTML = "";
+						this.chara_sort();
+						[LOAD_REGIST]
+						this.move_page(s.p, true);
+					} else {
+						this.menu_page(false);
+					}
+				} catch {
 					this.menu_page(false);
-					this.#speakArea.style.display = s.sp;
-					this.#chara_index = s.ci;
-					this.#chara_list = s.cl;
-					this.#viewArea.innerHTML = s.h;
-					this.#hideArea.innerHTML = s.hh;
-					/*
-					this.#serifText = s.tl;
-					this.#serifTextPoint = s.tl.length;
-					this.#speakAreaSerif.innerHTML = s.t;
-					*/
-					this.#serifText = [];
-					this.#serifTextPoint = 0;
-					this.#speakAreaSerif.innerHTML = "";
-					this.chara_sort();
-					[LOAD_REGIST]
-					this.move_page(s.p, true);
-				} else {
-					alert("データが適合していません。");
 				}
 			});
 		}
-		$ID("close_menu").addEventListener("click", (e)=>{
+		a.addEventListener("click", (e)=>{
 			e.preventDefault();
 			this.menu_page(false);
 		});
 	}
 	clear_show(){
 		this.menu_page();
-		$ID("gaku-ura_menu").innerHTML = '<h2>データ削除</h2><p>バージョン変更などで取り残されたデータを削除するための機能です。<b style="color:red;">他のページにもセーブデータがある場合はそれも消えます。</b>通常は上書きセーブで対応してください。</p><p><br></p><a href="#" id="clear_data"><div>全てローカルストレージをリセット</div></a><p><br></p><p><br></p><a href="#" id="close_menu"><div>とじる</div></a>';
-		$ID("gaku-ura_menu").addEventListener("click", (e)=>{e.stopPropagation()});
-		$ID("clear_data").addEventListener("click", (e)=>{
+		const m = document.createElement("div");
+		m.id = "gaku-ura_menu";
+		m.innerHTML = '<h2>データ削除</h2><p>バージョン変更などで取り残されたデータを削除するための機能です。<b style="color:red;">他のページにもセーブデータがある場合はそれも消えます。</b>通常は上書きセーブで対応してください。</p><p><br></p>';
+		const a = document.createElement("a");
+		const b = document.createElement("a");
+		a.href = "#";
+		b.href = "#";
+		a.id = "clear_data";
+		b.id = "close_menu";
+		a.innerHTML = "<div>全てローカルストレージをリセット</div>";
+		b.innerHTML = "<div>とじる</div>";
+		m.append(a);
+		m.append(b);
+		$ID("gaku-ura_base").append(m);
+		m.addEventListener("click", (e)=>{e.stopPropagation()});
+		a.addEventListener("click", (e)=>{
 			e.preventDefault();
-			localStorage.clear();
+			try {
+				localStorage.clear();
+			} catch {}
 			this.menu_page(false);
 		});
-		$ID("close_menu").addEventListener("click",(e)=>{
+		b.addEventListener("click",(e)=>{
 			e.preventDefault();
 			this.menu_page(false);
 		});
@@ -519,7 +583,7 @@ document.addEventListener("contextmenu", (e)=>{
 document.addEventListener("keydown", (e)=>{
 	<debug>return;</debug>
 	if (e.ctrlKey){
-		if (e.key === "u" || e.key === "r"){
+		if (e.key === "u" || e.key === "r" || e.key === "i"){
 			e.preventDefault();
 		}
 	} else if (e.key === "F5" || e.key === "F12"){

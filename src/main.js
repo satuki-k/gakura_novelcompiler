@@ -8,6 +8,7 @@
 #!include array.js;
 
 /* 進行クラス */
+//セーブidは他の作品と競合を防止するためのものです。使用環境に合わせて変更してください
 const save_id = location.href.replace(location.protocol,"")+"_gaku-ura4.4.0_save_";
 class Gs{
 	#page; //進行管理id
@@ -144,7 +145,6 @@ class Gs{
 
 	//背景の色または画像
 	bgcolor(c, s=0){
-		//this.#viewArea.style.transition = s==0?"":s+"s";
 		this.#viewArea.style.backgroundColor = c;
 		this.#viewArea.style.animation = s==0?"":"bgfade "+s+"s linear 1";
 		<debug>console.log("背景色: "+c);</debug>
@@ -371,51 +371,55 @@ class Gs{
 			}
 		}
 	}
-	/***
-	仕様変更:gaku-ura_menuをgetElementしないように
-	***/
-	menu_page(show, h=null){
+	//innerHTMLで追加した要素を取得しないように
+	menu_page(show=true){
 		this.#unbind = show;
 		if ($ID("gaku-ura_menu")) $ID("gaku-ura_menu").remove();
 		if (show){
 			this.menu_button(false);
-			const m = document.createElement("div");
-			if (h) m.innerHTML = h;
-			m.id = "gaku-ura_menu";
-			$ID("gaku-ura_base").append(m);
-			m.addEventListener("click", (e)=>{e.stopPropagation()});
-		} else {
-			if (this.#menu_button_enable) this.menu_button();
+		} else if (this.#menu_button_enable){
+			this.menu_button();
 		}
 	}
 	/* メニューオプション画面 */
 	menu_show(){
-		this.menu_page(true, '<h2>めにゅー</h2><a href="#" id="to_title"><div>タイトルへ</div></a><a href="#" id="save"><div>セーブ</div></a><a href="#" id="load"><div>ロード</div></a><a href="#" id="clear"><div>ローカルストレージ削除</div></a><a href="#" id="close_menu"><div>とじる</div></a>');
-		try {
-			$ID("to_title").addEventListener("click", (e)=>{
-				e.preventDefault();
-				location.reload();
-			});
-			$ID("save").addEventListener("click", (e)=>{
-				e.preventDefault();
-				this.save_show();
-			});
-			$ID("load").addEventListener("click", (e)=>{
-				e.preventDefault();
-				this.load_show();
-			});
-			$ID("clear").addEventListener("click", (e)=>{
-				e.preventDefault();
-				this.clear_show();
-			});
-			$ID("close_menu").addEventListener("click", (e)=>{
-				e.preventDefault();
-				this.menu_page(false);
-			});
-		} catch {
-			//ここでnull参照の例外が発生しないならば、次も大丈夫
-			this.menu_page(false);
+		this.menu_page();
+		const m = document.createElement("div");
+		const l = ["to_title", "save", "load", "clear", "close_menu"];
+		const n = ["タイトルへ", "セーブ", "ロード", "ローカルストレージ削除", "とじる"];
+		const t = {};
+		m.innerHTML = "<h2>めにゅー</h2>";
+		m.id = "gaku-ura_menu";
+		for (let i = 0; i < l.length; ++i){
+			const a = document.createElement("a");
+			a.href = "#";
+			a.id = l[i];
+			a.innerHTML = "<div>"+n[i]+"</div>";
+			t[l[i]] = a;
+			m.append(a);
 		}
+		$ID("gaku-ura_base").append(m);
+		m.addEventListener("click", (e)=>{e.stopPropagation()});
+		t["to_title"].addEventListener("click", (e)=>{
+			e.preventDefault();
+			location.reload();
+		});
+		t["save"].addEventListener("click", (e)=>{
+			e.preventDefault();
+			this.save_show();
+		});
+		t["load"].addEventListener("click", (e)=>{
+			e.preventDefault();
+			this.load_show();
+		});
+		t["clear"].addEventListener("click", (e)=>{
+			e.preventDefault();
+			this.clear_show();
+		});
+		t["close_menu"].addEventListener("click", (e)=>{
+			e.preventDefault();
+			this.menu_page(false);
+		});
 	}
 	//セーブする内容はよく検討すること
 	save(sid=0){
@@ -429,7 +433,11 @@ class Gs{
 		} catch {}
 	}
 	save_show(){
-		let h = "<h2>セーブ</h2><p>保存する場所を選択してください。</p>";
+		this.menu_page();
+		const m = document.createElement("div");
+		const t = [];
+		m.innerHTML = "<h2>セーブ</h2><p>保存する場所を選択してください。</p>";
+		m.id = "gaku-ura_menu";
 		for (let i = 0; i < {SAVE_MAX}; ++i){
 			let s = ["no data", "no data"];
 			try {
@@ -441,43 +449,69 @@ class Gs{
 			} catch {
 				continue;
 			}
-			h += '<a href="#" id="save_data_'+i+'"><dl><dt>'+s[0]+'</dt><dd>'+s[1]+'</dd></dl></a>';
+			const a = document.createElement("a");
+			a.href = "#";
+			a.id = "save_data_"+i;
+			a.innerHTML = "<dl><dt>"+s[0]+"</dt><dd>"+s[1]+"</dd></dl>";
+			t.push(a);
+			m.append(a);
 		}
-		h += '<a href="#" id="close_menu"><div>とじる</div></a>';
-		this.menu_page(true, h);
-		for (let k = 0; k < {SAVE_MAX}; ++k){
-			$ID("save_data_"+k).addEventListener("click", (e)=>{
+		const a = document.createElement("a");
+		a.href = "#";
+		a.id = "close_menu";
+		a.innerHTML = "<div>とじる</div>";
+		m.append(a);
+		$ID("gaku-ura_base").append(m);
+		m.addEventListener("click", (e)=>{e.stopPropagation()});
+		for (let i = 0; i < {SAVE_MAX}; ++i){
+			t[i].addEventListener("click", (e)=>{
 				e.preventDefault();
-				this.save(k);
+				this.save(i);
 				this.menu_page(false);
 			});
 		}
-		$ID("close_menu").addEventListener("click", (e)=>{
+		a.addEventListener("click", (e)=>{
 			e.preventDefault();
 			this.menu_page(false);
 		});
 	}
 	load_show(){
-		let h = "<h2>ロード</h2><p>読み込むものを選んでください。</p>";
+		this.menu_page();
+		const m = document.createElement("div");
+		const t = [];
+		m.innerHTML = "<h2>ロード</h2><p>読み込むものを選んでください。</p>";
+		m.id = "gaku-ura_menu";
 		for (let i = 0; i < {SAVE_MAX}; ++i){
 			try {
 				const j = localStorage.getItem(save_id+i);
 				if (j){
 					const jj =  JSON.parse(j);
-					h += '<a href="#" id="save_data_'+i+'"><dl><dt>'+jj.d+'</dt><dd>'+jj.t+'</dd></dl></a>';
+					const a = document.createElement("a");
+					a.href = "#";
+					a.id = "save_data_"+i;
+					a.innerHTML = "<dl><dt>"+jj.d+"</dt><dd>"+jj.t+"</dd></dl>";
+					t.push(a);
+					m.append(a);
+				} else {
+					t.push(null);
 				}
 			} catch {
-				continue;
+				t.push(null);
 			}
 		}
-		h += '<a href="#" id="close_menu"><div>とじる</div></a>';
-		this.menu_page(true, h);
-		for (let k = 0; k < 4; ++k){
-			if (!$ID("save_data_"+k)) continue;
-			$ID("save_data_"+k).addEventListener("click", (e)=>{
+		const a = document.createElement("a");
+		a.href = "#";
+		a.id = "close_menu";
+		a.innerHTML = "<div>とじる</div>";
+		m.append(a);
+		$ID("gaku-ura_base").append(m);
+		m.addEventListener("click", (e)=>{e.stopPropagation()});
+		for (let i = 0; i < {SAVE_MAX}; ++i){
+			if (t[i] === null) continue;
+			t[i].addEventListener("click", (e)=>{
 				e.preventDefault();
 				try {
-					const s = JSON.parse(localStorage.getItem(save_id+k));
+					const s = JSON.parse(localStorage.getItem(save_id+i));
 					if (list_isset(s, ["mb","sp","ci","cl","h","hw","hh","tl","t","p"])){
 						this.clear();
 						$ID("gaku-ura_display_w").innerHTML = s.hw;
@@ -489,36 +523,50 @@ class Gs{
 						this.#chara_list = s.cl;
 						this.#viewArea.innerHTML = s.h;
 						this.#hideArea.innerHTML = s.hh;
-						/*
-						this.#serifText = s.tl;
-						this.#serifTextPoint = s.tl.length;
-						this.#speakAreaSerif.innerHTML = s.t;
-						*/
 						this.#serifText = [];
 						this.#serifTextPoint = 0;
 						this.#speakAreaSerif.innerHTML = "";
 						this.chara_sort();
 						[LOAD_REGIST]
 						this.move_page(s.p, true);
+					} else {
+						this.menu_page(false);
 					}
-				} catch {}
+				} catch {
+					this.menu_page(false);
+				}
 			});
 		}
-		$ID("close_menu").addEventListener("click", (e)=>{
+		a.addEventListener("click", (e)=>{
 			e.preventDefault();
 			this.menu_page(false);
 		});
 	}
 	clear_show(){
-		this.menu_page(true, '<h2>データ削除</h2><p>バージョン変更などで取り残されたデータを削除するための機能です。<b style="color:red;">他のページにもセーブデータがある場合はそれも消えます。</b>通常は上書きセーブで対応してください。</p><p><br></p><a href="#" id="clear_data"><div>全てローカルストレージをリセット</div></a><p><br></p><p><br></p><a href="#" id="close_menu"><div>とじる</div></a>');
-		$ID("clear_data").addEventListener("click", (e)=>{
+		this.menu_page();
+		const m = document.createElement("div");
+		m.id = "gaku-ura_menu";
+		m.innerHTML = '<h2>データ削除</h2><p>バージョン変更などで取り残されたデータを削除するための機能です。<b style="color:red;">他のページにもセーブデータがある場合はそれも消えます。</b>通常は上書きセーブで対応してください。</p><p><br></p>';
+		const a = document.createElement("a");
+		const b = document.createElement("a");
+		a.href = "#";
+		b.href = "#";
+		a.id = "clear_data";
+		b.id = "close_menu";
+		a.innerHTML = "<div>全てローカルストレージをリセット</div>";
+		b.innerHTML = "<div>とじる</div>";
+		m.append(a);
+		m.append(b);
+		$ID("gaku-ura_base").append(m);
+		m.addEventListener("click", (e)=>{e.stopPropagation()});
+		a.addEventListener("click", (e)=>{
 			e.preventDefault();
 			try {
 				localStorage.clear();
 			} catch {}
 			this.menu_page(false);
 		});
-		$ID("close_menu").addEventListener("click",(e)=>{
+		b.addEventListener("click",(e)=>{
 			e.preventDefault();
 			this.menu_page(false);
 		});
@@ -535,7 +583,7 @@ document.addEventListener("contextmenu", (e)=>{
 document.addEventListener("keydown", (e)=>{
 	<debug>return;</debug>
 	if (e.ctrlKey){
-		if (e.key === "u" || e.key === "r"){
+		if (e.key === "u" || e.key === "r" || e.key === "i"){
 			e.preventDefault();
 		}
 	} else if (e.key === "F5" || e.key === "F12"){

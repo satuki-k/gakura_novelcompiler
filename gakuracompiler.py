@@ -401,7 +401,12 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 					if menu == "":
 						memo["dom_wait"] += "$ID('"+lbn+"').addEventListener('click',(e)=>{e.stopPropagation();if(this.#unbind)return;if($ID('gkbn'))$ID('gkbn').remove();this.move_page("+gid+")});"
 					else:
-						memo["dom_wait"] += "$ID('"+lbn+"').addEventListener('click',(e)=>{e.stopPropagation();if(this.#unbind)return;this.menu_show();if($ID('"+menu+"'))$ID('"+menu+"').click()});"
+						memo["dom_wait"] += "$ID('"+lbn+"').addEventListener('click',(e)=>{e.stopPropagation();if(this.#unbind)return;"
+						if menu in ["save","load","clear"]:
+							memo["dom_wait"] += "this."+menu+"_show();"
+						elif menu == "to_title":
+							memo["dom_wait"] += "location.reload();"
+						memo["dom_wait"] += "});"
 				uqid += 1
 			#入力 (フォーム形式 ボタンとセット ボタンが無いと脱出出来ない)
 			elif f2l[0] == "<input>":

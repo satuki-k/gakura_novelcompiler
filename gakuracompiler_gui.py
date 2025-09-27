@@ -88,7 +88,8 @@ class GsEditor:
 		mt["File"].add_command(label="Save/保存",command=self.save_file,accelerator="Ctrl+S")
 		mt["File"].add_command(label="Reload/再読み込み",command=lambda:self.show_file(""),accelerator="Ctrl+R")
 		mt["File"].add_command(label="New/新規",command=self.new_file,accelerator="Ctrl+N")
-		mt["File"].add_command(label="main scenario このプロジェクトのエントリーポイント",command=self.open_main_scenario)
+		mt["File"].add_command(label="main scenario このプロジェクトのエントリーポイント",command=lambda:self.new_open(gkrs.entry_point_gkrs,";main scenario file\n@define TITLE hello\nhello, world!\n"))
+		mt["File"].add_command(label="README.txt",command=lambda:self.new_open(gkrs.d_root+"/README.txt","title:\nversion:\nyour name:\netc\n"))
 		mt["File"].add_command(label="Exit/終了",command=lambda:root.quit(),accelerator="Ctrl+Q")
 		mt["Edit"].add_command(label="undo/もとにもどす",command=self.undo,accelerator="Ctrl+Z")
 		mt["Edit"].add_command(label="redo/やりなおす",command=self.redo,accelerator="Ctrl+Y")
@@ -132,7 +133,7 @@ class GsEditor:
 		mt["Export"].add_command(label="markdown document",command=lambda:self.export_as("md"))
 		mt["Help"].add_command(label="how to use/使い方",command=self.show_help,accelerator="F1")
 		mt["Help"].add_command(label="about this(open website)/これについて(サイトを開く)",command=lambda:web.open("http://bq.f5.si/?Page=novelcompiler"))
-		mt["Help"].add_command(label="version: 4.5.0") #バージョン番号を追加
+		mt["Help"].add_command(label="version: 4.5.1") #バージョン番号を追加
 		for k, v in mt.items():
 			m.add_cascade(label=k,menu=v)
 		root.bind("<Control-Key-q>",lambda x:root.quit())
@@ -185,7 +186,7 @@ class GsEditor:
 		if len(sys.argv) > 1 and os.path.exists(sys.argv[1]):
 			self.show_file(sys.argv[1])
 		else:
-			self.open_main_scenario()
+			self.new_open(gkrs.entry_point_gkrs, ";main scenario file\n@define TITLE hello\nhello, world!\n")
 	def lh(self):
 		return int(self.fs//4) #行間の半分(上下)
 	def open_file(self):
@@ -244,6 +245,11 @@ class GsEditor:
 			self.fileArea.config(text=os.path.basename(f))
 			self.hlstring()
 		return "break"
+	def new_open(self, path, notexists=""):
+		if not os.path.exists(path):
+			with open(path,"w",encoding="utf-8") as fp:
+				fp.write(notexists+"\n")
+		self.show_file(path)
 	def new_file(self):
 		self.fname = ""
 		self.ftype = ""
@@ -256,12 +262,6 @@ class GsEditor:
 		self.ftype = t
 		self.hlstring()
 		self.show_msg("reload as "+t)
-	def open_main_scenario(self):
-		f = gkrs.entry_point_gkrs
-		if not os.path.exists(f):
-			with open(f,"w",encoding="utf-8") as fp:
-				fp.write(";this file saved by system.")
-		self.show_file(f)
 	def show_text(self, text, title="United"):
 		self.textArea.delete("1.0",tk.END)
 		self.textArea.insert(tk.END,text)

@@ -837,6 +837,8 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 		fp.write(css+"\n")
 	with open(export_dir+"/parts/main.js","w", **m_u8lf) as fp:
 		fp.write(js+"\n")
+	if os.path.isfile(d_root+"/README.txt"):
+		shutil.copy(d_root+"/README.txt", export_dir+"/README.txt")
 
 	#electron向けビルド
 	if os.name == "nt" and deb == False:
@@ -854,9 +856,11 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 			fp.write("npm install -D electron\nnpm install -g yarn\nyarn add electron-builder --dev\n")
 		with open(electron_dir+"/build.bat","w") as fp:
 			fp.write("npx electron-builder --win --x64 --dir\n")
-		if os.path.isfile("favicon.png"):
-			shutil.copy("favicon.png", electron_dir+"/favicon.png")
-		msg[1] += "if you use electron to make exefile, please execute init.bat, install_electron.bat and build.bat\n"
+		if os.path.isfile(d_root+"/favicon.png"):
+			shutil.copy(d_root+"/favicon.png", electron_dir+"/favicon.png")
+		if os.path.isfile(d_root+"/README.txt"):
+			shutil.copy(d_root+"/README.txt", electron_dir+"/README.txt")
+	msg[1] += "if you use electron to make exefile, please execute init.bat, install_electron.bat and build.bat\n"
 	if "REQUEST_METHOD" not in os.environ:
 		if web_bw:
 			web.open(export_dir+"/index.html")

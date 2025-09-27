@@ -7,6 +7,8 @@ bbs: http://bq.f5.si/bbs/board/?Board=7
 
 
 ## 必要なもの/runtime
+play game: webbrowser or windows
+
 gakuracompiler_gui.exe(editor and compiler): nothing
 
 gakuracompiler.py(compiler only): **python3**
@@ -32,6 +34,11 @@ python gakuracompiler.py
 arguments: filepath(=script.gkrs) -y(debug mode) -n(publish mode) -WEB(open html file in web after compile)
 
 
+## 配布/publish
+Please make a zip file yourself.
+
+Must be includes: **export/index.html** and **export/static**
+
 
 ## 文法の解説/how to coding
 http://bq.f5.si/?Page=novelcompiler
@@ -53,4 +60,7 @@ http://bq.f5.si/?Page=novelcompiler
 ## ライセンス/license
 MIT license.
 
+
+## 協力/collaborators
+welcome.
 

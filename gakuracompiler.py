@@ -511,7 +511,7 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 				if f2l[1] not in replace["CHARA_LIST"]:
 					return e_fmt(e_fatl,"a character '"+f2l[1]+"' is not decleared",row_id,fname)
 				if len(f2l) > 2:
-					asect += 'this.chara_hide_fade("'+f2l[1]+'",'+f2l[2]+');'
+					asect += 'this.chara_hide_fade("'+f2l[1]+'","'+f2l[2]+'");'
 				else:
 					asect += 'this.chara_hide("'+f2l[1]+'");'
 			#背景

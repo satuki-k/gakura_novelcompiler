@@ -96,6 +96,7 @@ class GsEditor:
 		mt["Edit"].add_command(label="javascript",command=lambda:self.inscode('@eval code'))
 		mt["Edit"].add_command(label="function/関数",command=lambda:self.inscode('@function my_function(args){code}'))
 		mt["Edit"].add_command(label="define macro/マクロ定義",command=lambda:self.inscode(';KEY is always upper. KEYは大文字。\n;"[[KEY]]"is "value"\n@define KEY value'))
+		mt["Edit"].add_command(label="define window/画面定義",command=lambda:self.inscode("@define WIDTH [[WIDTH]]\n@define HEIGHT [[HEIGHT]]"))
 		mt["Edit"].add_command(label="escape char/エスケープ文字",command=lambda:self.inscode("\\",True))
 		mt["Edit"].add_command(label="row commentout/行コメントアウト",command=lambda:self.row_comment())
 		mt["Insert"].add_command(label="include lib/ファイル呼び出し",command=lambda:self.inscode("@include file(relative path/相対パス)"))
@@ -133,7 +134,7 @@ class GsEditor:
 		mt["Export"].add_command(label="markdown document",command=lambda:self.export_as("md"))
 		mt["Help"].add_command(label="how to use/使い方",command=self.show_help,accelerator="F1")
 		mt["Help"].add_command(label="about this(open website)/これについて(サイトを開く)",command=lambda:web.open("http://bq.f5.si/?Page=novelcompiler"))
-		mt["Help"].add_command(label="version: 4.5.1") #バージョン番号を追加
+		mt["Help"].add_command(label="version: 4.6.1") #バージョン番号を追加
 		for k, v in mt.items():
 			m.add_cascade(label=k,menu=v)
 		root.bind("<Control-Key-q>",lambda x:root.quit())

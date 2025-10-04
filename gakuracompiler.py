@@ -168,7 +168,7 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 	if nest["first"]:
 		if not os.path.isfile(nest["file"]):
 			return e_fmt(e_init,"対象ファイルが存在しません/"+nest["file"]+" is not file.")
-		config = {"SPEED":100,"TITLE":"gaku-ura novel","SAVE_MAX":4}
+		config = {"SPEED":100,"TITLE":"","SAVE_MAX":4,"WIDTH":1100,"HEIGHT":700}
 		if deb:
 			config["DEB"] = "true"
 		else:
@@ -184,10 +184,10 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 			"<button>":1,"chara":"name path=name show_name=''",
 			"chara_show":"name file fadein=0 apear_from_right=false",
 			"chara_hide":"name fadeout=0","clear":"","close_section":"",
-			"define":"key value","eval":"js_code",
-			"function":"name(args){code}","goto":"label","html":"html",
+			"define":"key ...value","eval":"...js_code",
+			"function":"...name(args){code}","goto":"label","html":"...html",
 			"include":"file","<input>":1,"menu_button":"true_or_false",
-			"regist":"js_code","serif_show":"","serif_hide":"",
+			"regist":"...js_code","serif_show":"","serif_hide":"",
 			"speak":"show_name array speed clear=false","stop":"",
 			"var":"name",
 			#以下、jsに定義済(@で呼び出しも禁止)
@@ -323,11 +323,15 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 			ags = p_method[f2l[0]]
 			if ags != 1:
 				if ags == "":
+					max_argc = 0
 					min_argc = 0
 				else:
-					min_argc = ags.count(" ") -ags.count("=") +1
-				if not(len(f2l) > min_argc):
+					max_argc = ags.count(" ") +1
+					min_argc = max_argc -ags.count("=")
+				if len(f2l) <= min_argc:
 					return e_fmt(e_fatl,"引数が足りません/too few arguments. @"+f2l[0]+" "+ags,row_id,fname)
+				elif not ags.split(" ")[-1].startswith("...") and max_argc+1 < len(f2l):
+					return e_fmt(e_fatl,"引数が多すぎです/too much arguments. @"+f2l[0]+" "+ags,row_id,fname)
 			#以下引数は検査済みなので範囲内が保証
 			#goto文
 			if f2l[0] == "goto":
@@ -501,6 +505,10 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 					return e_fmt(e_fatl,"ファイルがありません/"+f2l[2]+" is not file",row_id,fname)
 				replace["PRELOAD"].append(replace["CHARA_LIST"][f2l[1]]["d"]+"/"+f2l[2])
 				if len(f2l) > 3:
+					try:
+						float(f2l[3])
+					except:
+						return e_fmt(e_fatl,"型が違う/3rd arguments type is number in '@"+f2l[0]+"'.",row_id,fname)
 					if len(f2l) > 4:
 						asect += 'this.chara_show("'+f2l[1]+'","'+f2l[2]+'",'+f2l[3]+','+f2l[4]+');'
 					else:
@@ -511,6 +519,10 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 				if f2l[1] not in replace["CHARA_LIST"]:
 					return e_fmt(e_fatl,"a character '"+f2l[1]+"' is not decleared",row_id,fname)
 				if len(f2l) > 2:
+					try:
+						float(f2l[2])
+					except:
+						return e_fmt(e_fatl,"型が違う/2nd arguments type is number in '@"+f2l[0]+"'.",row_id,fname)
 					asect += 'this.chara_hide_fade("'+f2l[1]+'",'+f2l[2]+');'
 				else:
 					asect += 'this.chara_hide("'+f2l[1]+'");'
@@ -520,6 +532,10 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 			elif f2l[0] == "background_image":
 				if f2l[1] == "none":
 					if len(f2l) > 2:
+						try:
+							float(f2l[2])
+						except:
+							return e_fmt(e_fatl,"型が違う/2nd arguments type is number '@"+f2l[0]+"'.",row_id,fname)
 						asect += "this.bgimage('',"+f2l[2]+");"
 					else:
 						asect += "this.bgimage('');"
@@ -528,6 +544,10 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 						return e_fmt(e_fatl,"static/background/"+f2l[1]+" is not file",row_id,fname)
 					replace["PRELOAD"].append("static/background/"+f2l[1])
 					if len(f2l) > 2:
+						try:
+							float(f2l[2])
+						except:
+							return e_fmt(e_fatl,"型が違う/2nd arguments type is number '@"+f2l[0]+"'.",row_id,fname)
 						asect += "this.bgimage('static/background/"+f2l[1]+"',"+f2l[2]+");"
 					else:
 						asect += "this.bgimage('static/background/"+f2l[1]+"');"
@@ -535,6 +555,10 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 				if f2l[1] == "none":
 					f2l[1] = ""
 				if len(f2l) > 2:
+					try:
+						float(f2l[2])
+					except:
+						return e_fmt(e_fatl,"型が違う/2nd arguments type is number '@"+f2l[0]+"'.",row_id,fname)
 					asect += 'this.bgcolor("'+f2l[1]+'",'+f2l[2]+');';
 				else:
 					asect += 'this.bgcolor("'+f2l[1]+'");';
@@ -584,7 +608,8 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 			elif f2l[0] == "define":
 				k = f2l[1].upper()
 				v = " ".join(f2l[2:])
-				config[k] = v
+				if k == "TITLE" and config[k] == "":
+					config[k] = v
 				if k == "TITLE":
 					asect += "$QS('title').innerHTML='"+v.replace("'",r"\'")+"';"
 			#変数
@@ -844,7 +869,7 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 	if os.name == "nt" and deb == False:
 		electron_dir = export_dir+"/electron"
 		os.mkdir(electron_dir)
-		e = r"const {app,BrowserWindow}=require('electron');let mainWindow;app.on('ready',function(){mainWindow=new BrowserWindow({width:1100,height:700,autoHideMenuBar:true,webPreferences:{nodeIntegration:false,contextIsolation:false,devTools:false}});mainWindow.setMenuBarVisibility(false);mainWindow.loadURL('file:\/\/'+__dirname+'\/index.html');});"
+		e = r"const {app,BrowserWindow}=require('electron');let mainWindow;app.on('ready',function(){mainWindow=new BrowserWindow({width:"+str(config["WIDTH"])+",height:"+str(config["HEIGHT"])+",autoHideMenuBar:true,webPreferences:{nodeIntegration:false,contextIsolation:false,devTools:false}});mainWindow.setMenuBarVisibility(false);mainWindow.loadURL('file:\/\/'+__dirname+'\/index.html');});"
 		with open(electron_dir+"/index.html","w",**m_u8lf) as fp:
 			fp.write(html+"\n")
 		with open(electron_dir+"/index.js","w",**m_u8lf) as fp:

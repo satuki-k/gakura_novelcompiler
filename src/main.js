@@ -9,7 +9,7 @@
 
 /* 進行クラス */
 //セーブidは他の作品と競合を防止するためのものです。使用環境に合わせて変更してください
-const save_id = location.href.replace(location.protocol,"")+"_gaku-ura4.4.0_save_";
+const save_id = location.href.replace(location.protocol,"")+"_gaku-ura4.6.1_save_";
 class Gs{
 	#page; //進行管理id
 	#wait; //表示の未完了

@@ -18,7 +18,8 @@ a, a:hover{
 #gaku-ura_base, .gaku-ura_display{
 	user-select:none;
 	width:100%;
-	font:2vw/1.5 serif; /* 画面によって文字サイズ変更 */
+	font-family:serif;
+	line-height:1.5em;
 	color:#fff;
 	background:#000;
 	position:relative;
@@ -93,26 +94,6 @@ h1{
 	height:1.5em;
 	border-bottom:solid 1px #fff;
 }
-
-/* 最大文字サイズ */
-@media only screen and (min-width:1000px){
-	#gaku-ura_base, .gaku-ura_display{
-		font-size:20px;
-	}
-}
-@media only screen and (max-width:600px){
-	#gaku-ura_base, .gaku-ura_display{
-		font-size:12px;
-	}
-}
-
-/* スマホ横表示はスクロールしてもらうしかない。要素が重なったりはみ出る。ブレークポイントは各自で決める */
-@media only screen and (max-height:600px){
-	#gaku-ura_display{
-		overflow-y:scroll;
-	}
-}
-
 
 /* キャラ */
 .chara{

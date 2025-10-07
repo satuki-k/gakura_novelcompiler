@@ -134,7 +134,7 @@ class GsEditor:
 		mt["Export"].add_command(label="markdown document",command=lambda:self.export_as("md"))
 		mt["Help"].add_command(label="how to use/使い方",command=self.show_help,accelerator="F1")
 		mt["Help"].add_command(label="about this(open website)/これについて(サイトを開く)",command=lambda:web.open("http://bq.f5.si/?Page=novelcompiler"))
-		mt["Help"].add_command(label="version: 4.6.1") #バージョン番号を追加
+		mt["Help"].add_command(label="version: 4.6.2") #バージョン番号を追加
 		for k, v in mt.items():
 			m.add_cascade(label=k,menu=v)
 		root.bind("<Control-Key-q>",lambda x:root.quit())

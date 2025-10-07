@@ -714,9 +714,12 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 	label["EOF "+fname] = replace["PAGE_MAX"]
 	oeval = ""
 	nst = 0
+	not_end_id = 0
 	page_add_list = []
 	for i in range(len(memo["if_stack"])):
 		v = memo["if_stack"][i]
+		if v["type"] != "end":
+			not_end_id = v["id"]
 		if v["type"] == "if":
 			nst += 1
 			oeval = v["eval"]
@@ -725,7 +728,7 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 			for j in memo["if_stack"][i +1:]:
 				if j["type"] == "if":
 					nc += 1
-				elif j["type"] == "end" or j["type"] == "elseif" or j["type"] == "else":
+				elif j["type"] in ["end","elseif","else"]:
 					nc -= 1
 					if nc == 0:
 						endid = j["id"]
@@ -748,6 +751,8 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 			not_list = ""
 			ct = 0
 			for j in range(i -1, -1, -1):
+				if memo["if_stack"][j]["type"] not in ["if","elseif"]:
+					continue
 				ct += 1
 				not_list += "("+memo["if_stack"][j]["eval"]+")"
 				if memo["if_stack"][j]["type"] == "if":
@@ -764,19 +769,21 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 		elif v["type"] == "end":
 			nst -= 1
 			if len(page_list) > v["id"]:
-				if page_list[v["id"]].find("[[END end]]") == 0:
-					page_list[v["id"]] = page_list[v["id"]].replace("[[END end]]","",1)
-				else:
+				if v["id"] == not_end_id:
 					page_list[v["id"]] = page_list[v["id"]].replace("[[END end]]","}",1)
-					if v["id"] != memo["if_stack"][i -1]["id"]:
-						page_list[v["id"]] = "if("+oeval+"){"+page_list[v["id"]]
-			else:
-				if section.find("[[END end]]") == 0:
-					section = section.replace("[[END end]]","", 1)
+				elif page_list[v["id"]].lstrip().find("[[END end]]") > 0:
+					page_list[v["id"]] = page_list[v["id"]].replace("[[END end]]","}",1)
+					page_list[v["id"]] = "if("+oeval+"){"+page_list[v["id"]]
 				else:
+					page_list[v["id"]] = page_list[v["id"]].replace("[[END end]]","",1)
+			else:
+				if v["id"] == not_end_id:
 					section = section.replace("[[END end]]","}", 1)
-					if v["id"] != memo["if_stack"][i -1]["id"]:
-						section = "if("+oeval+"){"+section
+				elif section.lstrip().find("[[END end]]") > 0:
+					section = section.replace("[[END end]]","}", 1)
+					section = "if("+oeval+"){"+section
+				else:
+					section = section.replace("[[END end]]","", 1)
 	for i in range(len(page_add_list) -1, -1, -1):
 		page_list[page_add_list[i]["id"]] += page_add_list[i]["c"]
 	#gotoの修正
@@ -869,7 +876,7 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 	if os.name == "nt" and deb == False:
 		electron_dir = export_dir+"/electron"
 		os.mkdir(electron_dir)
-		e = r"const {app,BrowserWindow}=require('electron');let mainWindow;app.on('ready',function(){mainWindow=new BrowserWindow({width:"+str(config["WIDTH"])+",height:"+str(config["HEIGHT"])+",autoHideMenuBar:true,webPreferences:{nodeIntegration:false,contextIsolation:false,devTools:false}});mainWindow.setMenuBarVisibility(false);mainWindow.loadURL('file:\/\/'+__dirname+'\/index.html');});"
+		e = r"const {app,BrowserWindow}=require('electron');let mainWindow;app.on('ready',function(){mainWindow=new BrowserWindow({width:"+str(config["WIDTH"])+",height:"+str(config["HEIGHT"])+",autoHideMenuBar:true,webPreferences:{nodeIntegration:false,contextIsolation:false,devTools:false}});mainWindow.setMenuBarVisibility(false);mainWindow.loadURL('file://'+__dirname+'/index.html');});"
 		with open(electron_dir+"/index.html","w",**m_u8lf) as fp:
 			fp.write(html+"\n")
 		with open(electron_dir+"/index.js","w",**m_u8lf) as fp:

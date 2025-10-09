@@ -608,7 +608,7 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 			elif f2l[0] == "define":
 				k = f2l[1].upper()
 				v = " ".join(f2l[2:])
-				if k == "TITLE" and config[k] == "":
+				if k != "TITLE" or config[k] == "":
 					config[k] = v
 				if k == "TITLE":
 					asect += "$QS('title').innerHTML='"+v.replace("'",r"\'")+"';"

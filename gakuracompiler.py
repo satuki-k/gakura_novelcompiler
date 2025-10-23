@@ -154,13 +154,19 @@ def e_fmt(typ, msg, lid=0, f=""):
 config = {}
 replace = {}
 p_method = {}
+p_var = []
 section = ""
 page_list = []
 uqid = 0
+def UID(h="_"):
+	global uqid
+	uqid += 1
+	return h+str(uqid)
 def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_gkrs}):
 	global config
 	global replace
 	global p_method
+	global p_var
 	global section
 	global page_list
 	global uqid
@@ -196,12 +202,19 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 			"speak_all":0,"show":0,"next":0,"move_page":0,
 			"input_action":0,"menu_page":0,"menu_show":0,"save":0,
 			"save_show":0,"load_show":0,"clear_show":0}
+		p_var = []
 		page_list = []
 		section = ""
 		uqid = 0
 		for f in ["index.html","src/main.js","src/main.css"]:
 			if not os.path.isfile(d_root+"/"+f):
 				return e_fmt(e_init,"必須ファイルが無い/"+d_root+"/"+f+" is not exists.")
+		j = subrpos("class Gs{","constructor(",js_out(d_root+"/src/main.js"))
+		if j == "":
+			return e_fmt(e_init,"main.js破損の可能性(Gsクラスがありません)/'main.js' is broken. class 'Gs' is not found.")
+		while (v:=subrpos("#",";",j)) != "":
+			j = j.replace("#"+v+";", "")
+			p_var.append(v)
 	#コンパイル開始
 	section_start = len(page_list)
 	row_id = 0
@@ -366,24 +379,22 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 				t = subrpos('text="', '"', f2)
 				menu = subrpos('menu="', '"', f2)
 				g = subrpos('goto="', '"', f2)
+				gid = str(replace["PAGE_MAX"] +1)
 				if menu == "":
-					if g == "":
-						gid = str(replace["PAGE_MAX"] +1)
-					elif g == "EOF":
-						gid = "[[GOTO EOF "+fname+"]]"
-					elif g in p_label:
-						gid = "[[GOTO "+g+"]]"
-					else:
-						return e_fmt(e_fatl,"未定義ラベル/label '"+g+"' is not defined",row_id,fname)
-				else:
-					if menu not in ["save","load","to_title"]:
-						return e_fmt(e_fatl,"不正な引数です/an argument 'menu' must input 'save', 'load' or 'to_title'",row_id,fname)
-					gid = str(replace["PAGE_MAX"])
-				lbn = "goto_"+str(uqid)
+					if g != "":
+						if g == "EOF":
+							gid = "[[GOTO EOF "+fname+"]]"
+						elif g in p_label:
+							gid = "[[GOTO "+g+"]]"
+						else:
+							return e_fmt(e_fatl,"未定義ラベル/label '"+g+"' is not defined",row_id,fname)
+				elif menu not in ["save","load","to_title"]:
+					return e_fmt(e_fatl,"不正な引数です/an argument 'menu' must input 'save', 'load' or 'to_title'",row_id,fname)
+				lbn = UID()
 				#buttonを作成
 				asect += "const "+lbn+"=document.createElement('button');"+lbn+".id='"+lbn+"';"
 				if t != "":
-					asect += lbn+".innerHTML+='"+t+"';"
+					asect += lbn+".innerHTML='"+t+"';"
 				if c != "":
 					if " " in c:
 						for j in c.split(" "):
@@ -394,14 +405,16 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 				if s != "":
 					asect += lbn+'.style="'+s+'";'
 				if memo["form"] and memo["form_submit"] == "":
-					asect += lbn+".id='"+lbn+"';"+config["FORM"]+".append("+lbn+");"
+					asect += config["FORM"]+".append("+lbn+");"
 					memo["form_shift"] += "this.move_page("+gid+");"
 					memo["form_submit"] = lbn
 				else:
 					if memo["button_open"] == False:
-						asect += "if($ID('gkbn'))$ID('gkbn').remove();this.#viewArea.innerHTML+='<div id=\"gkbn\"></div>';"
+						frn = UID()
+						config["FORM"] = frn
+						asect += "if($ID('gkbn'))$ID('gkbn').remove();const "+frn+"=document.createElement('div');"+frn+".id='gkbn';this.#viewArea.append("+frn+");"
 						memo["button_open"] = True
-					asect += "$ID('gkbn').append("+lbn+");"
+					asect += frn+".append("+lbn+");"
 					if menu == "":
 						memo["dom_wait"] += "$ID('"+lbn+"').addEventListener('click',(e)=>{e.stopPropagation();if(this.#unbind)return;if($ID('gkbn'))$ID('gkbn').remove();this.move_page("+gid+")});"
 					else:
@@ -411,7 +424,6 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 						elif menu == "to_title":
 							memo["dom_wait"] += "location.reload();"
 						memo["dom_wait"] += "});"
-				uqid += 1
 			#入力 (フォーム形式 ボタンとセット ボタンが無いと脱出出来ない)
 			elif f2l[0] == "<input>":
 				c = subrpos('class="', '"', f2)
@@ -429,10 +441,10 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 				n = subrpos('name="', '"', f2)
 				if n == "" or replace["VAR"].find("#"+n+";") == -1:
 					return e_fmt(e_fatl,"変数が存在しないか未指定です/an argument 'name' is not set or it is not defined",row_id,fname)
-				nen = "input_"+str(uqid)
-				lnen = "l_"+nen
+				nen = UID()
+				lnen = UID()
 				if memo["form"] == False:
-					frn = "form_"+str(uqid)
+					frn = UID()
 					config["FORM"] = frn
 					#後でフォームを作るために記憶
 					memo["form"] = True
@@ -470,7 +482,6 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 					asect += lnen+".onclick=()=>{this.#"+n+"="+nen+".checked;};"
 				else:
 					memo["form_input"].append({"name":n,"id":nen})
-				uqid += 1
 			#クリア
 			elif f2l[0] == "clear":
 				asect += "this.clear();"
@@ -583,7 +594,6 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 					memo["form_input"] = []
 					memo["form_shift"] = ""
 					memo["form_submit"] = ""
-					config["FORM"] = ""
 					if memo["button_open"]:
 						asect += memo["dom_wait"]
 				elif memo["button_open"]:
@@ -593,17 +603,18 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 				memo["form"] = False
 				memo["bottom_shift"] = ""
 				memo["dom_wait"] = ""
+				if "FORM" in config:
+					del config["FORM"]
 				close_fl = True
 			#html挿入(evalでも可能だが冗長になるからラップする)
 			elif f2l[0] == "html":
-				hc = "t"+str(uqid)
+				hc = UID()
 				if len(f2l) > 1:
 					jc = "const "+hc+"='"+" ".join(f2l[1:]).replace("'",'"')+"';if(isload){this.#viewArea.innerHTML=this.#viewArea.innerHTML.replace("+hc+",'');}this.#viewArea.innerHTML+="+hc+";"
 					if memo["form"] or memo["button_open"]:
 						memo["bottom_shift"] += jc
 					else:
 						asect += jc
-				uqid += 1
 			#設定変更
 			elif f2l[0] == "define":
 				k = f2l[1].upper()
@@ -614,9 +625,12 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 					asect += "$QS('title').innerHTML='"+v.replace("'",r"\'")+"';"
 			#変数
 			elif f2l[0] == "var":
+				if f2l[1] in p_var:
+					return e_fmt(e_fatl,"変数の多重宣言/variable '"+f2l[1]+"' has already decleared",row_id,fname)
 				if "#" in f2l[1] or "." in f2l[1] or "-" in f2l[1] or f2l[1][0].isdigit():
-					return e_fmt(e_fatl,"variable can not includes '#', '.' or '-' or start number",row_id,fname)
+					return e_fmt(e_fatl,"変数名が無効/variable can not includes '#', '.' or '-' or start number",row_id,fname)
 				replace["VAR"] += "#"+f2l[1]+";"
+				p_var.append(f2l[1])
 			#ロード対策用
 			elif f2l[0] == "regist":
 				replace["LOAD_REGIST"] += " ".join(f2l[1:])
@@ -799,6 +813,8 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 		return msg #mainじゃなければ次へ
 
 	#ビルド開始
+	if config["TITLE"] == "":
+		config["TITLE"] = "学裏ノベルコンパイラ"
 	with open(d_root+"/index.html","r") as fp:
 		html = fp.read()
 	if not deb:

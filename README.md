@@ -1,7 +1,9 @@
-# gaku-ura novel compiler 4.6
-2025-10-4
+# gaku-ura novelcompiler
+2025-10-22
 
 web: http://bq.f5.si/?Page=novelcompiler
+
+how to use: http://bq.f5.si/?Page=how2gkrs
 
 bbs: http://bq.f5.si/bbs/board/?Board=7
 

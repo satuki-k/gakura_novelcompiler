@@ -151,6 +151,7 @@ def e_fmt(typ, msg, lid=0, f=""):
 	else:
 		return [typ,"("+f+")["+{e_init:"preprocess",e_pars:"parse",e_fatl:"fatal",e_warn:"warning"}[typ]+"]"+msg+", line"+str(lid)+"\n",lid,f]
 #コンパイルメモ用変数
+include_list = []
 config = {}
 replace = {}
 p_method = {}
@@ -170,6 +171,7 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 	global section
 	global page_list
 	global uqid
+	global include_list
 	#初期化
 	if nest["first"]:
 		if not os.path.isfile(nest["file"]):
@@ -204,6 +206,7 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 			"save_show":0,"load_show":0,"clear_show":0}
 		p_var = []
 		page_list = []
+		include_list = []
 		section = ""
 		uqid = 0
 		for f in ["index.html","src/main.js","src/main.css"]:
@@ -225,6 +228,7 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 	"button_open":False,"form":False,"form_input":[],
 	"form_shift":"","form_submit":"","dom_wait":""}
 	fname = nest["file"]
+	include_list.append(fname.replace("\\","/"))
 	with open(fname, "r") as fp:
 		rows = fp.readlines()
 	#前処理
@@ -361,10 +365,12 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 			elif f2l[0] == "include":
 				f = " ".join(f2l[1:]).strip()
 				if f[0] == "/" or (len(f) > 1 and f[1] == ":"):
-					pth = f
+					pth = os.path.abspath(f)
 				else:
-					pth = d_root+"/"+f
+					pth = os.path.abspath(d_root+"/"+f)
 				if os.path.isfile(pth):
+					if pth.replace("\\","/") in include_list:
+						return e_fmt(e_fatl,pth+" 再帰include/circulation include is not allowed",row_id,fname)
 					for k, v in label.items():
 						section = section.replace("[[GOTO "+k+"]]", str(v))
 					rt = start_build(deb,web_bw,{"first":False,"file":pth})

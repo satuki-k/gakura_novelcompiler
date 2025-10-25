@@ -6,7 +6,7 @@
 
 import os
 if "REQUEST_METHOD" in os.environ:
-	print("content-type:text/html;charset=UTF-8\n\nWEBでのご利用は出来ません。can not access by web.")
+	print("content-type:text/html;charset=UTF-8\n\nThis is not website.")
 	exit()
 import sys
 import webbrowser as web
@@ -138,7 +138,7 @@ class GsEditor:
 		mt["Export"].add_command(label="html document",command=lambda:self.export_as("html"))
 		mt["Export"].add_command(label="markdown document",command=lambda:self.export_as("md"))
 		mt["Help"].add_command(label="how to use/使い方",command=self.show_help,accelerator="F1")
-		mt["Help"].add_command(label="version: 5.0.1") #バージョン番号を追加
+		mt["Help"].add_command(label="version: 5.0.2") #バージョン番号を追加
 		for k, v in mt.items():
 			m.add_cascade(label=k,menu=v)
 		root.bind("<Control-Key-q>",lambda x:root.quit())
@@ -199,11 +199,12 @@ class GsEditor:
 		return int(self.fs//4) #行間の半分(上下)
 	def add_expect(self):
 		if self.fname != "":
-			self.expect[self.fname] = {"fcontent":self.fcontent,"ftype":self.ftype,"focus":self.textArea.index("insert")}
+			self.expect[self.fname.replace("\\","/")] = {"fcontent":self.fcontent,"tcontent":self.textArea.get("1.0","end-1c").replace("\r\n","\n").replace("\r","\n"),"ftype":self.ftype,"focus":self.textArea.index("insert")}
 			k = list(self.expect.keys())
 			k.reverse()
 			self.expectTab.config(values=k)
-	def remove_expect(self, f):
+	def remove_expect(self, file):
+		f = file.replace("\\","/")
 		if f in self.expect:
 			del self.expect[f]
 			self.expectTab.config(values=list(self.expect.keys()))
@@ -215,7 +216,8 @@ class GsEditor:
 		if f:
 			self.show_file(f)
 		return "break"
-	def show_file(self, f=""):
+	def show_file(self, file=""):
+		f = file.replace("\\","/")
 		self.add_expect()
 		if f == "":
 			if self.fname == "":
@@ -248,7 +250,7 @@ class GsEditor:
 		self.fname = f
 		self.ftype = self.expect[f]["ftype"]
 		self.fcontent = self.expect[f]["fcontent"]
-		self.show_text(self.fcontent, f)
+		self.show_text(self.expect[f]["tcontent"], f)
 		self.show_msg("reopen file:"+f)
 		self.fileArea.config(text=os.path.basename(f))
 		self.textArea.see(self.expect[f]["focus"])
@@ -313,6 +315,7 @@ class GsEditor:
 		self.hlstring()
 		self.update_lids()
 		root.title(title+" -gaku-ura")
+		self.check_his()
 	def export_as(self, to):
 		if self.fname == "" or self.ftype != "gkrs":
 			self.show_msg("file type is not 'gkrs'.")

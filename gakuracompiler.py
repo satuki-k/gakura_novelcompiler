@@ -660,7 +660,7 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 				asect += ");"
 		#その他ブロック内
 		elif memo["function"] != "":
-			asect += row
+			asect += re.sub(r"\/\/.*", "", row)
 		#名前表示
 		elif f1 == "#":
 			f2 = "'"+ruby(f2)+"'"

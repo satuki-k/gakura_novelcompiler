@@ -11,12 +11,13 @@ if "REQUEST_METHOD" in os.environ:
 import sys
 import webbrowser as web
 import tkinter as tk
+from tkinter import ttk
 import gakuracompiler as gkrs
 from tkinter import filedialog
 def tk_nc(n):
 	return "1.0+"+str(n)+"c"
 class GsEditor:
-	__slots__ = ("fs","fname","ftype","fcontent","lids","textArea","hltags","hltagsM","msgArea","fileArea","fileData","fdArea","fscpArea","rcmenu")
+	__slots__ = ("fs","fname","ftype","fcontent","expect","expectTab","lids","textArea","hltags","hltagsM","msgArea","fileArea","fileData","fdArea","fscpArea","rcmenu")
 	def __init__(self):
 		#メニュースタイルはあてにならない
 		m = tk.Menu(root,bg="#fff",fg="#111",font=("",14))
@@ -28,6 +29,7 @@ class GsEditor:
 		self.ftype = ""
 		self.fcontent = ""
 		self.fileData = {}
+		self.expect = {}
 		NOBD = {"bd":0,"highlightthickness":0}
 		HFONT = ("Courier",self.fs)
 		BODY = {"bg":"#ffc","fg":"#000"}
@@ -35,8 +37,11 @@ class GsEditor:
 		#根幹
 		bW = tk.PanedWindow(root,orient=tk.VERTICAL) #上 menu code
 		mW = tk.PanedWindow(bW,orient=tk.HORIZONTAL,height=500) #下 message
+		eTA = tk.Frame(root,height=20,bg=BODY["bg"]) #上tab
 		msF = tk.Frame(bW) #下 message
 		meF = tk.Frame(mW,bg=BODY["bg"]) #右 menu
+		# 上tab
+		self.expectTab = ttk.Combobox(eTA,state="readonly",width=1<<10,font=HFONT)
 		#左 code
 		cdF = tk.Frame(mW)
 		self.lids = tk.Text(cdF,takefocus=0,**PTAG,**NOBD,bg="#ccc",state="disabled",font=HFONT)
@@ -86,7 +91,7 @@ class GsEditor:
 		root.config(menu=m)
 		mt["File"].add_command(label="Open/開く",command=self.open_file,accelerator="Ctrl+O")
 		mt["File"].add_command(label="Save/保存",command=self.save_file,accelerator="Ctrl+S")
-		mt["File"].add_command(label="Reload/再読み込み",command=lambda:self.show_file(""),accelerator="Ctrl+R")
+		mt["File"].add_command(label="Reload/再読み込み",command=lambda:self.show_file(),accelerator="Ctrl+R")
 		mt["File"].add_command(label="New/新規",command=self.new_file,accelerator="Ctrl+N")
 		mt["File"].add_command(label="main scenario このプロジェクトのエントリーポイント",command=lambda:self.new_open(gkrs.entry_point_gkrs,";main scenario file\n@define TITLE hello\nhello, world!\n"))
 		mt["File"].add_command(label="README.txt",command=lambda:self.new_open(gkrs.d_root+"/README.txt","title:\nversion:\nyour name:\netc\n"))
@@ -133,14 +138,13 @@ class GsEditor:
 		mt["Export"].add_command(label="html document",command=lambda:self.export_as("html"))
 		mt["Export"].add_command(label="markdown document",command=lambda:self.export_as("md"))
 		mt["Help"].add_command(label="how to use/使い方",command=self.show_help,accelerator="F1")
-		mt["Help"].add_command(label="about this(open website)/これについて(サイトを開く)",command=lambda:web.open("http://bq.f5.si/?Page=novelcompiler"))
-		mt["Help"].add_command(label="version: 4.7.2") #バージョン番号を追加
+		mt["Help"].add_command(label="version: 5.0.1") #バージョン番号を追加
 		for k, v in mt.items():
 			m.add_cascade(label=k,menu=v)
 		root.bind("<Control-Key-q>",lambda x:root.quit())
 		root.bind("<Control-Key-s>",lambda x:self.save_file())
 		root.bind("<Control-Key-o>",lambda x:self.open_file())
-		root.bind("<Control-Key-r>",lambda x:self.show_file(""))
+		root.bind("<Control-Key-r>",lambda x:self.show_file())
 		root.bind("<Control-Key-n>",lambda x:self.new_file())
 		root.bind("<Control-Key-plus>",lambda x:self.zoom())
 		root.bind("<Control-Key-minus>",lambda x:self.zoom(False))
@@ -151,6 +155,7 @@ class GsEditor:
 		root.bind("<F5>",lambda x:self.compile(True,True,False))
 		root.bind("<F8>",lambda x:self.compile(True,False,False))
 		root.bind("<F9>",lambda x:self.compile(False,False,False))
+		self.expectTab.bind("<<ComboboxSelected>>", lambda x:self.show_file_expect(self.expectTab.get()))
 		self.textArea.bind("<Control-Key-a>",self.select_all)
 		self.textArea.bind("<Control-Key-c>",self.copy)
 		self.textArea.bind("<Control-Key-o>",self.k_open_file)
@@ -175,6 +180,8 @@ class GsEditor:
 		self.lids.pack(side="left",fill="y")
 		self.textArea.pack(side="left",fill="both",expand=True)
 		self.msgArea.pack(fill="both",expand=True)
+		self.expectTab.pack()
+		eTA.pack()
 		mW.pack(fill="both",expand=True)
 		bW.pack(fill="both",expand=True)
 		mW.add(meF)
@@ -190,6 +197,16 @@ class GsEditor:
 			self.new_open(gkrs.entry_point_gkrs, ";main scenario file\n@define TITLE hello\nhello, world!\n")
 	def lh(self):
 		return int(self.fs//4) #行間の半分(上下)
+	def add_expect(self):
+		if self.fname != "":
+			self.expect[self.fname] = {"fcontent":self.fcontent,"ftype":self.ftype,"focus":self.textArea.index("insert")}
+			k = list(self.expect.keys())
+			k.reverse()
+			self.expectTab.config(values=k)
+	def remove_expect(self, f):
+		if f in self.expect:
+			del self.expect[f]
+			self.expectTab.config(values=list(self.expect.keys()))
 	def open_file(self):
 		try:
 			f = filedialog.askopenfilename(filetypes=[("All Files","*.*")],initialdir=gkrs.d_root)
@@ -198,7 +215,8 @@ class GsEditor:
 		if f:
 			self.show_file(f)
 		return "break"
-	def show_file(self, f):
+	def show_file(self, f=""):
+		self.add_expect()
 		if f == "":
 			if self.fname == "":
 				return
@@ -215,6 +233,29 @@ class GsEditor:
 		self.show_text(c, f)
 		self.show_msg("open file:"+f)
 		self.fileArea.config(text=os.path.basename(f))
+		if f in self.expect:
+			self.textArea.see(self.expect[f]["focus"])
+			self.textArea.mark_set("insert",self.expect[f]["focus"])
+			self.textArea.focus()
+			self.sync_scroll()
+			self.remove_expect(f)
+	def show_file_expect(self, f):
+		self.add_expect()
+		if f not in self.expect or not os.path.isfile(f):
+			self.show_msg("can not reopen "+f)
+			self.remove_expect(f)
+			return
+		self.fname = f
+		self.ftype = self.expect[f]["ftype"]
+		self.fcontent = self.expect[f]["fcontent"]
+		self.show_text(self.fcontent, f)
+		self.show_msg("reopen file:"+f)
+		self.fileArea.config(text=os.path.basename(f))
+		self.textArea.see(self.expect[f]["focus"])
+		self.textArea.mark_set("insert",self.expect[f]["focus"])
+		self.textArea.focus()
+		self.sync_scroll()
+		self.remove_expect(f)
 	def show_save(self):
 		try:
 			f = filedialog.asksaveasfilename(filetypes=[("All Files","*.*")],initialdir=gkrs.d_root)
@@ -252,6 +293,7 @@ class GsEditor:
 				fp.write(notexists+"\n")
 		self.show_file(path)
 	def new_file(self):
+		self.add_expect()
 		self.fname = ""
 		self.ftype = ""
 		self.fcontent = ""
@@ -605,13 +647,12 @@ class GsEditor:
 			else:
 				self.textArea.tag_add("hl",s+"0",s+"end")
 	def compile(self, o, b, use_main=True):
+		if self.fname!="" and self.fcontent!=self.textArea.get("1.0","end-1c"):
+			self.save_file(self.fname)
 		if use_main:
-			if self.fname == gkrs.entry_point_gkrs:
-				self.save_file(self.fname)
 			r = gkrs.start_build(o, b)
 			self.show_msg("[gakuracompiler this project] "+r[1])
 		else:
-			self.save_file(self.fname)
 			r = gkrs.start_build(o, b, {"first":True,"file":self.fname})
 			self.show_msg("[gakuracompiler "+self.fname+"]"+r[1])
 		if r[0] != gkrs.e_none:
@@ -621,84 +662,7 @@ class GsEditor:
 			self.textArea.see(str(r[2])+".0")
 			self.sync_scroll()
 	def show_help(self):
-		self.fname = ""
-		self.ftype = "md"
-		self.fcontent = r"""# summary/要約
-This is the IDE for 'gaku-ura scenario'(gkrs).
-これは「学裏シナリオ(gkrs)」向けの統合開発環境です。
-
-This include editor, compiler and some useful functions.
-エディター、コンパイラ、その他便利機能が含まれます。
-
-
-This program can not manage more than tow projects but 1 project.
-複数のプロジェクトを管理することは出来ません。
-
-When making new project, prease copy a dir that parent of here and rename to new project name.
-新規プロジェクトを作成するときは、この親ディレクトリをコピーして、新しい名前に変更して下さい。
-
-You can check this project dir by menu 'View'.
-プロジェクトディレクトリはメニューの「表示」から確認出来ます。
-
-
-# project dir/プロジェクトディレクトリ
-Compiler use absolute path of project dir.
-コンパイラはプロジェクトディレクトリの絶対パスを使用します。
-
-It is same to this programs path.
-このプログラムと同一のパスです。
-
-Compiler can change entrypoint file by absolute path but, another files such as html, css, javascript and include libs are not changed.
-絶対パスを指定してコンパイル対象を変更可能ですが、そのほかのhtml、css、javascript、includeするライブラリなどは変更されません。
-
-
-# symbol/シンボル
-When load file such as file extension is '.gkrs', '.html', '.css' or '.js', editor indicate some symbols on the left side.
-.gkrs、.html、.css、.jsなどの拡張子のファイルを読み込むと、シンボルが左に表示されます。
-
-If you double click the enabled item, its symbol underlined in editor and reclick or edit code, underline is removed.
-有効な項目をダブルクリップすると、該当箇所に下線が表示されます。もう一度クリックすると消えます。
-
-This function inspired by Geany. But Geany is more stronger than this.
-これはGeanyを参考にしましたが劣化コピーです。
-
-
-# compile error/コンパイルエラー
-'Compile', 'Build' and 'Execute' can have error.
-コンパイル、ビルド、実行ではエラーが発生することがあります。
-
-When error, it informed in message log and indicate code editor with red color and underline on the row that seemed to makes error.
-Thats file is not opened then, editor opens it.
-エラーになると、エラー文が表示されて、エラーが発生したと思われる該当箇所が赤の下線で表示されます。
-対象ファイルが開かれていない場合は、開きます。
-
-Error report system sometimes make mistake. Hint: review the code before error row-number.
-エラーの仕組みはたまに間違えます。ヒント:エラー該当箇所の行より上を確認して。
-
-
-# difference of compile and build/コンパイルとビルドの違い
-Compile, Execute/コンパイル、実行: build in debug mode/デバッグモードでビルド
-Execute/実行: run after compile/コンパイル後に実行
-Build/ビルド: build in publish mode/配布用
-
-
-# how to make charactor or picture/キャラや画像の作り方
-Drowing picture also difficult more than programing.
-画像を作るのはプログラミングより難しいことがあります。
-
-You can use free picture.
-フリー画像を使いましょう。
-
-Let's search "public domain ..." or "free picture".
-「パブリックドメイン ~」「フリー画像」などで検索しましょう。
-
-Prease be careful the lisense.
-ライセンスには気を付けて下さい。
-
-
-"""
-		self.fileArea.config(text="How to use")
-		self.show_text(self.fcontent,"How to use/使い方")
+		web.open("http://bq.f5.si/?Page=novelcompiler")
 if __name__ == "__main__":
 	root = tk.Tk()
 	root.geometry("1000x600")

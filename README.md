@@ -1,5 +1,5 @@
 # gaku-ura novelcompiler
-2025-10-24
+2025-10-25
 
 web: http://bq.f5.si/?Page=novelcompiler
 

@@ -876,7 +876,10 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 		js = remove_comment_rows(js, "<debug>","</debug>")
 	#出力先の初期化
 	if os.path.exists(export_dir):
-		shutil.rmtree(export_dir)
+		try:
+			shutil.rmtree(export_dir)
+		except:
+			return e_fmt(e_fatl,"消せないファイルがあります/Could not reset a result_dir.",0,fname)
 	os.mkdir(export_dir)
 	#htmlにリンク
 	html = html.replace("{JS}", js)

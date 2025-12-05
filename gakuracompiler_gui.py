@@ -138,7 +138,7 @@ class GsEditor:
 		mt["Export"].add_command(label="html document",command=lambda:self.export_as("html"))
 		mt["Export"].add_command(label="markdown document",command=lambda:self.export_as("md"))
 		mt["Help"].add_command(label="how to use/使い方",command=self.show_help,accelerator="F1")
-		mt["Help"].add_command(label="version: 5.2.1") #バージョン番号を追加
+		mt["Help"].add_command(label="version: 5.2.2") #バージョン番号を追加
 		for k, v in mt.items():
 			m.add_cascade(label=k,menu=v)
 		root.bind("<Control-Key-q>",lambda x:root.quit())
@@ -272,7 +272,7 @@ class GsEditor:
 			if self.fname != "" and f == None:
 				f = self.fname
 			c = self.textArea.get("1.0","end-1c").replace("\r\n","\n").replace("\r","\n")
-			if c[-1] != "\n":
+			if c[-1:] != "\n":
 				c += "\n"
 				self.textArea.insert(tk.END,"\n")
 			try:
@@ -497,7 +497,7 @@ class GsEditor:
 				if l not in rl:
 					sl = content[sts:sts+f1]
 					if len(sl.splitlines()) > 1:
-						sl = sl.splitlines()[-1]
+						sl = sl.splitlines()[-1:]
 					symbol["function"].append([sl.strip(),l])
 					rl.append(l)
 				self.textArea.tag_add("command",tk_nc(sts),tk_nc(p+f1))

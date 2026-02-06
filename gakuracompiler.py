@@ -11,13 +11,10 @@ if "REQUEST_METHOD" not in os.environ:
 	import webbrowser as web
 def row_js(j):
 	return re.sub(r"( |)(,|=|{|}|\(|\)|[|]|\?|!|\&|-|\+|<|>|:|;|\*|\/)( |)",r"\2",j)
-def subrpos(start, end, text):
-	f1 = text.find(start)
-	len1 = len(start)
-	if f1 != -1:
-		f2 = text[f1+len1:].find(end)
-		if f2 != -1:
-			return text[f1+len1:f1+f2+len1]
+def subrpos(l, r, t):
+	n = len(l)
+	if (s:=t.find(l))!=-1 and (e:=t[s+n:].find(r))!=-1:
+		return t[s+n:s+e+n]
 	return ""
 def remove_comment_rows(code, s="/*", g="*/"):
 	while (p:=subrpos(s, g, code)) != "":

@@ -1,5 +1,5 @@
 # gaku-ura novelcompiler
-2026-2-6
+2026-3-9
 
 web: http://bq.f5.si/?Page=novelcompiler
 
@@ -16,6 +16,8 @@ gakuracompiler_gui.exe(editor and compiler): nothing
 gakuracompiler.py(compiler only): **python3**
 
 gakuracompiler_gui.py(editor and compiler): **python3 and tkinter**
+
+install tkinter: `sudo apt install python3-tk`
 
 
 ## 実行/execute
@@ -46,17 +48,6 @@ Must be includes: **export/index.html** and **export/static**
 http://bq.f5.si/?Page=novelcompiler
 
 **All of text files are must be "LF" and "UTF-8".**
-
-## コーディング規約
-1. 定義や宣言は可能な限り最初に行う
-2. 伏線は必ず回収する
-3. 偶然か第六感でしかクリア出来ないような仕様を避ける
-4. 宣言した登場人物や変数は必ず使われなければならない
-5. 記述するファイルパスや変数の名前は1バイト文字でなければならない
-6. ラベルやマクロなどコンパイル後に消失する情報はこの限りではない
-7. コンパイラの魔法は完璧でなない
-8. 分割プリロードが必要なほどの量の画像を使ってはならない
-9. 実行時にインラインscriptやevalをやってはいけない
 
 
 ## ライセンス/license

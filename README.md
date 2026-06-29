@@ -1,5 +1,5 @@
 # gaku-ura novelcompiler
-2026-3-9
+2026-6-29
 
 web: http://bq.f5.si/?Page=novelcompiler
 
@@ -10,8 +10,6 @@ bbs: http://bq.f5.si/bbs/board/?Board=7
 
 ## 必要なもの/runtime
 play game: webbrowser or windows
-
-gakuracompiler_gui.exe(editor and compiler): nothing
 
 gakuracompiler.py(compiler only): **python3**
 

@@ -9,7 +9,7 @@ function h(s){
 	.replace(/'/g,"&#39;");
 }
 function lh(s){
-	return Array.from(s,(i)=>{h(i);});
+	return Array.from(s,i=>h(i));
 }
 //切り抜き
 function subrpos(l, r, t){

@@ -32,7 +32,7 @@ def css_out(css_file):
 	elif os.path.isfile(css_file):
 		css_list = [css_file]
 	for css in css_list:
-		with open(css, "r") as fp:
+		with open(css, "r", **m_u8lf) as fp:
 			r += fp.read()
 	r = remove_comment_rows(r)
 	r = re.sub(r"\r|\n|\r\n|\t", "", r)
@@ -49,7 +49,7 @@ def js_out(js_file, minify=True):
 	elif os.path.isfile(js_file):
 		js_list = [js_file]
 	for js in js_list:
-		with open(js, "r") as fp:
+		with open(js, "r", **m_u8lf) as fp:
 			j = fp.read()
 		if subrpos("#!option ",";", j) == "notminify":
 			minify = False
@@ -226,7 +226,7 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 	"form_shift":"","form_submit":"","dom_wait":""}
 	fname = nest["file"]
 	include_list.append(fname.replace("\\","/"))
-	with open(fname, "r") as fp:
+	with open(fname, "r", **m_u8lf) as fp:
 		rows = fp.readlines()
 	#前処理
 	for i in rows:
@@ -823,7 +823,7 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 	#ビルド開始
 	if config["TITLE"] == "":
 		config["TITLE"] = "学裏ノベルコンパイラ"
-	with open(d_root+"/index.html","r") as fp:
+	with open(d_root+"/index.html","r", **m_u8lf) as fp:
 		html = fp.read()
 	if not deb:
 		html = remove_comment_rows(html,"<!--","-->").replace("\t","").replace("\r","").replace("\n","")
@@ -928,10 +928,11 @@ def start_build(deb=False, web_bw=False, nest={"first":True,"file":entry_point_g
 			msg[1] += "出力先ディレクトリ: "+d_root+"/export is output dir.\n"
 	return msg
 #他言語へ
+
 def export_as(file, to, first=True):
 	if not os.path.isfile(file):
 		return [e_init,file+" is not file."]
-	with open(file, "r") as fp:
+	with open(file, "r", **m_u8lf) as fp:
 		rows = fp.readlines()
 	r = ""
 	if to == "html":
